@@ -28,13 +28,13 @@ public class ProductController {
     @PostMapping
     @ResponseStatus(value = HttpStatus.CREATED)
     public ProductResponse createProduct(@RequestBody ProductRequest productRequest) {
-       return productService.createProduct(productRequest);
+        return productService.createProduct(productRequest);
     }
 
     @GetMapping
     @ResponseStatus(value = HttpStatus.OK)
     public List<ProductResponse> getProducts() {
-       return productService.getAllProducts();
+        return productService.getAllProducts();
     }
 
     @PostMapping("/batch")
@@ -46,13 +46,8 @@ public class ProductController {
     @GetMapping("/search")
     @ResponseStatus(HttpStatus.OK)
     public ProductResponse getProductByName(@RequestParam("name") String name) {
-        return productService.getProduct(name);
+        return productService.getProduct(name)
+                ;
     }
 
-
-    @GetMapping("/{name}")
-    @ResponseStatus(HttpStatus.OK)
-    public ProductResponse getProductByNamePath(@PathVariable String name) {
-        return productService.getProduct(name);
-    }
 }
