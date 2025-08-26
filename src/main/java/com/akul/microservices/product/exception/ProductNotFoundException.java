@@ -1,4 +1,4 @@
-package com.akul.microservices.product.exeption;
+package com.akul.microservices.product.exception;
 
 /**
  * ProductNotFoundException.java
