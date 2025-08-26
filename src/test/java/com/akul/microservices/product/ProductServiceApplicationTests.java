@@ -52,7 +52,7 @@ class ProductServiceApplicationTests {
 
         .body("name", Matchers.equalTo("iPhone 1415 Pro"))
         .body("description", Matchers.equalTo("Apple smartphone with OLED display"))
-        .body("price", Matchers.equalTo(1350.0F));
+        .body("price", Matchers.equalTo(1350.0));
     }
 
     @Test
@@ -82,8 +82,8 @@ class ProductServiceApplicationTests {
 
         String requestBody = """
                 [
-                  { "name": "Dell XPS 13", "description": "Compact ultrabook", "price": 1800 },
-                  { "name": "Sony WH-1000XM5", "description": "Wireless headphones", "price": 500 }
+                  { "name": "Dell XPS 13", "description": "Compact ultrabook", "price": 1800.0 },
+                  { "name": "Sony WH-1000XM5", "description": "Wireless headphones", "price": 500.0 }
                 ]
                 """;
 
@@ -109,7 +109,7 @@ class ProductServiceApplicationTests {
 
         String requestBody = """
                 [
-                  { "name": "Asus ROG Strix G15", "description": "Gaming laptop", "price": 2200 }
+                  { "name": "Asus ROG Strix G15", "description": "Gaming laptop", "price": 2200.0 }
                 ]
                 """;
 
@@ -129,6 +129,6 @@ class ProductServiceApplicationTests {
                 .statusCode(200)
                 .body("name", Matchers.equalTo("Asus ROG Strix G15"))
                 .body("description", Matchers.equalTo("Gaming laptop"))
-                .body("price", Matchers.equalTo(2200.0F));
+                .body("price", Matchers.equalTo(2200.0));
     }
 }

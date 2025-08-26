@@ -2,15 +2,13 @@ package com.akul.microservices.product.service;
 
 import com.akul.microservices.product.dto.ProductRequest;
 import com.akul.microservices.product.dto.ProductResponse;
+import com.akul.microservices.product.exception.ProductNotFoundException;
 import com.akul.microservices.product.model.Product;
 import com.akul.microservices.product.repository.ProductRepository;
-import lombok.NoArgsConstructor;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * ProductService.java
@@ -61,5 +59,12 @@ public class ProductService {
         return products.stream()
                 .map(this::createProduct)
                 .toList();
+    }
+
+    public void deleteById(String id) {
+        Product product = productRepository.findById(id)
+                .orElseThrow(() -> new ProductNotFoundException("Product not found with id: " + id));
+        productRepository.deleteById(id);
+        log.info("Successfully deleted product: {}", product);
     }
 }

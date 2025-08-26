@@ -2,10 +2,10 @@ package com.akul.microservices.product.controller;
 
 import com.akul.microservices.product.dto.ProductRequest;
 import com.akul.microservices.product.dto.ProductResponse;
-import com.akul.microservices.product.model.Product;
 import com.akul.microservices.product.service.ProductService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -19,7 +19,7 @@ import java.util.List;
  */
 
 @RestController
-@RequestMapping("/api/v1/product")
+@RequestMapping("/api/v1/products")
 @RequiredArgsConstructor
 public class ProductController {
 
@@ -50,4 +50,9 @@ public class ProductController {
                 ;
     }
 
+    @DeleteMapping("/{id}")
+    public ResponseEntity<String> deleteProduct(@PathVariable String id) {
+        productService.deleteById(id);
+        return ResponseEntity.ok("Product successfully deleted!");
+    }
 }
