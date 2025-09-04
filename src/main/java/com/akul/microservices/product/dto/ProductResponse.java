@@ -12,6 +12,7 @@ import java.math.BigDecimal;
  * @since 8/19/2025
  */
 public record ProductResponse(String id, String name, String description, BigDecimal price) {
+
     public static ProductResponse from(Product product) {
         return new ProductResponse(
                 product.getId(),
