@@ -10,6 +10,8 @@ import org.springframework.boot.testcontainers.service.connection.ServiceConnect
 import org.springframework.context.annotation.Import;
 import org.testcontainers.containers.MongoDBContainer;
 
+import java.math.BigDecimal;
+
 import static io.restassured.RestAssured.given;
 
 @Import(TestcontainersConfiguration.class)
@@ -37,7 +39,7 @@ class ProductServiceApplicationTests {
                   {
                        "name": "iPhone 1415 Pro",
                        "description": "Apple smartphone with OLED display",
-                       "price": 1350
+                       "price": 1350.0
                    }
                 """;
 
@@ -45,14 +47,14 @@ class ProductServiceApplicationTests {
                 .contentType("application/json")
                 .body(requestBody)
                 .when()
-                .post("/api/v1/product")
+                .post("/api/v1/products")
                 .then()
                 .statusCode(201)
                 .body("id", Matchers.notNullValue())
 
-        .body("name", Matchers.equalTo("iPhone 1415 Pro"))
-        .body("description", Matchers.equalTo("Apple smartphone with OLED display"))
-        .body("price", Matchers.equalTo(1350.0));
+                .body("name", Matchers.equalTo("iPhone 1415 Pro"))
+                .body("description", Matchers.equalTo("Apple smartphone with OLED display"))
+                .body("price", Matchers.equalTo(1350.0f));
     }
 
     @Test
@@ -68,7 +70,7 @@ class ProductServiceApplicationTests {
                 .contentType("application/json")
                 .body(requestBody)
                 .when()
-                .post("/api/v1/product/batch")
+                .post("/api/v1/products/batch")
                 .then()
                 .statusCode(201)
                 .body("size()", Matchers.equalTo(2))
@@ -90,14 +92,14 @@ class ProductServiceApplicationTests {
         given()
                 .contentType("application/json")
                 .body(requestBody)
-                .post("/api/v1/product/batch")
+                .post("/api/v1/products/batch")
                 .then()
                 .statusCode(201);
 
 
         given()
                 .when()
-                .get("/api/v1/product")
+                .get("/api/v1/products")
                 .then()
                 .statusCode(200)
                 .body("size()", Matchers.greaterThanOrEqualTo(2))
@@ -116,7 +118,7 @@ class ProductServiceApplicationTests {
         given()
                 .contentType("application/json")
                 .body(requestBody)
-                .post("/api/v1/product/batch")
+                .post("/api/v1/products/batch")
                 .then()
                 .statusCode(201);
 
@@ -124,11 +126,11 @@ class ProductServiceApplicationTests {
         given()
                 .queryParam("name", "Asus ROG Strix G15")
                 .when()
-                .get("/api/v1/product/search")
+                .get("/api/v1/products/search")
                 .then()
                 .statusCode(200)
                 .body("name", Matchers.equalTo("Asus ROG Strix G15"))
                 .body("description", Matchers.equalTo("Gaming laptop"))
-                .body("price", Matchers.equalTo(2200.0));
+                .body("price", Matchers.equalTo(2200.0f));
     }
 }
