@@ -11,7 +11,7 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 
 /**
- * ProductService.java
+ * ProductService.java.
  *
  * @author Andrii Kulynch
  * @version 1.0
@@ -35,15 +35,19 @@ public class ProductService {
                 .build();
         productRepository.save(product);
         log.info("Successfully created product: {}", product);
-        return new ProductResponse(product.getId(), product.getName(), product.getDescription(), product.getPrice());
+        return new ProductResponse(product.getId(),
+                product.getName(),
+                product.getDescription(),
+                product.getPrice());
     }
-
 
     public ProductResponse getProduct(String name) {
         return productRepository.findByName(name)
                 .map(ProductResponse::from)
                 .orElseThrow(
-                        () -> new RuntimeException("Product with name %s is absent!".formatted(name))
+                        () -> new RuntimeException(
+                                "Product with name %s is absent!"
+                                        .formatted(name))
                 );
     }
 
@@ -63,7 +67,8 @@ public class ProductService {
 
     public void deleteById(String id) {
         Product product = productRepository.findById(id)
-                .orElseThrow(() -> new ProductNotFoundException("Product not found with id: " + id));
+                .orElseThrow(() -> new ProductNotFoundException(
+                        "Product not found with id: " + id));
         productRepository.deleteById(id);
         log.info("Successfully deleted product: {}", product);
     }
