@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?> <!DOCTYPE suppressions PUBLIC
+        "-//Checkstyle//DTD SuppressionFilter Configuration 1.2//EN" "https://checkstyle.org/dtds/suppressions_1_2.dtd">
+<suppressions>
+    <suppress checks="JavadocPackage"/>
+    <suppress checks="JavadocVariable"/>
+    <suppress checks="MissingJavadocMethod"/>
+    <suppress checks="HiddenField"/>
+    <suppress checks="MagicNumber"/>
+    <suppress checks="HideUtilityClassConstructor"/>
+    <suppress checks="DesignForExtension"/>
+    <!-- Disable "parameters must be final" everywhere -->
+    <suppress checks="FinalParameters"
+              files=".*"/>
+
+    <!-- Disable JavadocType checks (missing @param, @return, etc.) -->
+    <suppress checks="JavadocType"
+              files=".*"/>
+
+</suppressions>

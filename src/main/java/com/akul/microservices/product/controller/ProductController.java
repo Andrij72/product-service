@@ -6,12 +6,20 @@ import com.akul.microservices.product.service.ProductService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
 /**
- * ProductController.java
+ * ProductController.java.
  *
  * @author Andrii Kulynch
  * @version 1.0
@@ -27,7 +35,8 @@ public class ProductController {
 
     @PostMapping
     @ResponseStatus(value = HttpStatus.CREATED)
-    public ProductResponse createProduct(@RequestBody ProductRequest productRequest) {
+    public ProductResponse createProduct(
+            @RequestBody final ProductRequest productRequest) {
         return productService.createProduct(productRequest);
     }
 
@@ -39,19 +48,20 @@ public class ProductController {
 
     @PostMapping("/batch")
     @ResponseStatus(HttpStatus.CREATED)
-    public List<ProductResponse> createProducts(@RequestBody List<ProductRequest> products) {
+    public List<ProductResponse> createProducts(
+            @RequestBody final List<ProductRequest> products) {
         return productService.createProducts(products);
     }
 
     @GetMapping("/search")
     @ResponseStatus(HttpStatus.OK)
-    public ProductResponse getProductByName(@RequestParam("name") String name) {
-        return productService.getProduct(name)
-                ;
+    public ProductResponse getProductByName(
+            @RequestParam("name") final String name) {
+        return productService.getProduct(name);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<String> deleteProduct(@PathVariable String id) {
+    public ResponseEntity<String> deleteProduct(@PathVariable final String id) {
         productService.deleteById(id);
         return ResponseEntity.ok("Product successfully deleted!");
     }

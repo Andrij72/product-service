@@ -10,7 +10,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import java.math.BigDecimal;
 
 /**
- * Product.java
+ * Product.java.
  *
  * @author Andrii Kulynch
  * @version 1.0

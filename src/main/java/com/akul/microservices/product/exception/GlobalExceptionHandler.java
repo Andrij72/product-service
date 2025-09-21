@@ -10,7 +10,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * GlobalExceptionHandler.java
+ * GlobalExceptionHandler.java.
  *
  * @author Andrii Kulynch
  * @version 1.0
@@ -21,7 +21,8 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(ProductNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    public Map<String, Object> handleProductNotFound(ProductNotFoundException ex) {
+    public Map<String, Object> handleProductNotFound(
+            ProductNotFoundException ex) {
         Map<String, Object> errorResponse = new HashMap<>();
         errorResponse.put("timestamp", LocalDateTime.now());
         errorResponse.put("status", 404);
@@ -33,7 +34,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    public Map<String, Object> handleAllExceptions(Exception ex) {
+    public Map<String, Object> handleAllExceptions(final Exception ex) {
         Map<String, Object> errorResponse = new HashMap<>();
         errorResponse.put("timestamp", LocalDateTime.now());
         errorResponse.put("status", 500);

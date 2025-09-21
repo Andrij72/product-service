@@ -1,7 +1,10 @@
 package com.akul.microservices.product;
 
+import com.mongodb.client.MongoClient;
+import com.mongodb.client.MongoClients;
 import io.restassured.RestAssured;
 import org.hamcrest.Matchers;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -19,17 +22,37 @@ class ProductServiceIntegrationTests {
 
     @ServiceConnection
     static MongoDBContainer mongoDBContainer = new MongoDBContainer("mongo:7.0.5");
+
     @LocalServerPort
     private Integer port;
 
+    static {
+        mongoDBContainer.start();
+    }
+
     @BeforeEach
-    void setUp() {
+    void cleanDatabase() {
+        try (MongoClient mongoClient = MongoClients.create(mongoDBContainer.getReplicaSetUrl())) {
+            long countBefore = mongoClient.getDatabase("test")
+                    .getCollection("products")
+                    .countDocuments();
+            System.out.println("Documents in 'products' before test: " + countBefore);
+
+            mongoClient.getDatabase("test").drop();
+
+            long countAfterDrop = mongoClient.getDatabase("test")
+                    .getCollection("products")
+                    .countDocuments();
+            System.out.println("Documents in 'products' after drop: " + countAfterDrop);
+        }
+
         RestAssured.baseURI = "http://localhost";
         RestAssured.port = port;
     }
 
-    static {
-        mongoDBContainer.start();
+    @AfterAll
+    static void stopContainer() {
+        mongoDBContainer.stop();
     }
 
     @Test
@@ -132,4 +155,5 @@ class ProductServiceIntegrationTests {
                 .body("description", Matchers.equalTo("Gaming laptop"))
                 .body("price", Matchers.equalTo(2200.0f));
     }
+
 }

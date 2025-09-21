@@ -1,0 +1,77 @@
+name: Build & Push Product Service
+
+on:
+  push:
+    branches:
+      - develop
+      - main
+    tags:
+      - 'v*.*.*'
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    services:
+      mongodb:
+        image: mongo:7.0.5
+        ports:
+          - 27017:27017
+        env:
+          MONGO_INITDB_ROOT_USERNAME: ${{ secrets.MONGO_USER }}
+          MONGO_INITDB_ROOT_PASSWORD: ${{ secrets.MONGO_PASS }}
+          MONGO_INITDB_DATABASE: product-service
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up JDK
+        uses: actions/setup-java@v3
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      #- name: Run Checkstyle
+      #  run: mvn checkstyle:check
+
+      - name: Check MongoDB
+        run: |
+          docker ps -a
+          docker logs $(docker ps -q -f ancestor=mongo:7.0.5)
+
+      - name: Run tests
+        run: mvn test
+
+      - name: Build package
+        run: mvn clean package -DskipTests
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_PASSWORD }}
+
+      - name: Build & Push Docker image (develop)
+        if: github.ref == 'refs/heads/develop'
+        uses: docker/build-push-action@v4
+        with:
+          push: true
+          tags: ${{ secrets.DOCKER_HUB_USERNAME }}/product-service:dev-latest
+
+      - name: Build & Push Docker image (main)
+        if: github.ref == 'refs/heads/main'
+        uses: docker/build-push-action@v4
+        with:
+          push: true
+          tags: ${{ secrets.DOCKER_HUB_USERNAME }}/product-service:latest
+
+      - name: Build & Push Docker image (tagged release)
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: docker/build-push-action@v4
+        with:
+          push: true
+          tags: ${{ secrets.DOCKER_HUB_USERNAME }}/product-service:${{ github.ref_name }}
