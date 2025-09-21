@@ -5,13 +5,16 @@ import com.akul.microservices.product.model.Product;
 import java.math.BigDecimal;
 
 /**
- * ProductResponse.java
+ * ProductResponse.java.
  *
  * @author Andrii Kulynch
  * @version 1.0
  * @since 8/19/2025
  */
-public record ProductResponse(String id, String name, String description, BigDecimal price) {
+public record ProductResponse(String id,
+                              String name,
+                              String description,
+                              BigDecimal price) {
 
     public static ProductResponse from(Product product) {
         return new ProductResponse(
