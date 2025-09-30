@@ -34,12 +34,22 @@ jobs:
           java-version: '21'
           distribution: 'temurin'
 
-      - name: Check MongoDB
-        run: |
-          docker ps -a
-          docker logs $(docker ps -q -f ancestor=mongo:7.0.5)
+      # - name: Run Checkstyle
+      #   run: mvn checkstyle:check
+
+      - name: Cache Maven packages
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.m2/repository
+            !~/.m2/repository/org/apache/maven/plugins/maven-surefire-plugin
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
 
       - name: Run tests
+        env:
+          SPRING_DATA_MONGODB_URI: mongodb://$${{ secrets.MONGO_USER }}:$${{ secrets.MONGO_PASS }}@localhost:27017/product-service?authSource=admin
         run: mvn test
 
       - name: Build package
@@ -64,11 +74,18 @@ jobs:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_PASSWORD }}
 
+      - name: Extract short SHA
+        run: echo "SHORT_SHA=${GITHUB_SHA::7}" >> $GITHUB_ENV
+
       - name: Build & Push Docker image (dev)
         uses: docker/build-push-action@v4
         with:
+          context: .
+          file: Dockerfile
           push: true
-          tags: ${{ secrets.DOCKER_HUB_USERNAME }}/product-service:dev-latest
+          tags: |
+            ${{ secrets.DOCKER_HUB_USERNAME }}/product-service:dev-latest
+            ${{ secrets.DOCKER_HUB_USERNAME }}/product-service:dev-${{ env.SHORT_SHA }}
 
   docker-main:
     runs-on: ubuntu-latest
@@ -89,11 +106,18 @@ jobs:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_PASSWORD }}
 
+      - name: Extract short SHA
+        run: echo "SHORT_SHA=${GITHUB_SHA::7}" >> $GITHUB_ENV
+
       - name: Build & Push Docker image (latest)
         uses: docker/build-push-action@v4
         with:
+          context: .
+          file: Dockerfile
           push: true
-          tags: ${{ secrets.DOCKER_HUB_USERNAME }}/product-service:latest
+          tags: |
+            ${{ secrets.DOCKER_HUB_USERNAME }}/product-service:latest
+            ${{ secrets.DOCKER_HUB_USERNAME }}/product-service:${{ env.SHORT_SHA }}
 
   docker-release:
     runs-on: ubuntu-latest
@@ -101,7 +125,6 @@ jobs:
     if: startsWith(github.ref, 'refs/tags/v')
     steps:
       - uses: actions/checkout@v3
-
       - name: Set up JDK
         uses: actions/setup-java@v3
         with:
@@ -114,8 +137,15 @@ jobs:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_PASSWORD }}
 
+      - name: Extract short SHA
+        run: echo "SHORT_SHA=${GITHUB_SHA::7}" >> $GITHUB_ENV
+
       - name: Build & Push Docker image (tagged release)
         uses: docker/build-push-action@v4
         with:
+          context: .
+          file: Dockerfile
           push: true
-          tags: ${{ secrets.DOCKER_HUB_USERNAME }}/product-service:${{ github.ref_name }}
+          tags: |
+            ${{ secrets.DOCKER_HUB_USERNAME }}/product-service:${{ github.ref_name }}
+            ${{ secrets.DOCKER_HUB_USERNAME }}/product-service:${{ env.SHORT_SHA }}

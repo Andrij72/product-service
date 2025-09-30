@@ -25,43 +25,66 @@ It is built with **Spring Boot**, stores data in **MongoDB**, and integrates wit
 ---
 
 ## 📂 Project Structure
-       
-       product-service/
-      ├── src/main/java/com/andrij72/product
-      │ ├── controller # REST-контролери
-      │ ├── model # Моделі даних
-      │ ├── repository # Репозиторії MongoDB
-      │ └── service # Бізнес-логіка
-      └── src/main/resources
-      └── application.
-
+```
+product-service/
+├── src/main/java/com/andrij72/product
+│ ├── controller # REST controllers
+│ ├── model # Data models
+│ ├── repository # MongoDB repositories
+│ └── service # Business logic
+└── src/main/resources
+└── application.properties
+```
 ---
 
 ## ⚙️ Running Locally
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/Andrij72/product-service.git
-   cd product-service
 
+### 1️⃣ Clone the repository
+```bash
+git clone https://github.com/Andrij72/product-service.git
+```
 
----
+2️⃣ Start dependencies
 
-## ⚙️ Running Locally
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/Andrij72/product-service.git
-   cd product-service
-Start MongoDB (e.g., with Docker):
+ - **MongoDB** (standalone for tests):
+```bash
+docker run -d -p 27017:27017 --name mongodb mongo:latest
+```
+ - **Kafka + Zookeeper** (for event-driven features):
+```bash
+docker-compose -f docker-compose/kafka.yml up -d
+```
 
-    docker run -d -p 27017:27017 --name mongodb mongo:latest
-Start Kafka (via Docker Compose or Confluent Platform).
+- Or use **docker-compose examples** provided:
 
-Run the service:
+`````
+docker-compose-examples/
+  ├── mongo-only.yml           # MongoDB standalone
+  ├── build-local.yml          # MongoDB + build product-service locally
+  ├── dev-latest.yml           # MongoDB + dev-latest Docker image from Hub
+  └── release.yml              # MongoDB + release Docker image from Hub
+`````
 
-    ./mvnw spring-boot:run
+3️⃣ Run the service
+``` bash
+./mvnw spring-boot:run
+``` 
 or
+``` bash
+./gradlew bootRun
+``` 
 
-    ./gradlew bootRun
+``` bash
+./gradlew bootRun
+```
+or
+``` bash
+./gradlew bootRun
+````
+.
+_______
+
+## 📌 REST API Endpoints
 
 | Method | Endpoint             | Description                |
 | ------ | -------------------- | -------------------------- |
@@ -71,17 +94,36 @@ or
 | PUT    | `/api/products/{id}` | Update an existing product |
 | DELETE | `/api/products/{id}` | Delete a product           |
 
+_______
+
+## 🛠️ Development Workflow
+
+
+CI/CD via GitHub Actions:
+
+- develop branch → builds dev-latest Docker image
+
+- main branch → builds latest Docker image
+
+- Tags (e.g., v0.0.2) → build release image
+
+- Tests run via Maven/Gradle; optionally connect to MongoDB via ENV variable for integration tests.
+
+- Docker images use SHA tags for reproducibility.
+_______
 
 ## 📌 Roadmap
-Add request validation (Spring Validation)
 
-Add tests (JUnit + Testcontainers)
+- Add request validation (Spring Validation)
 
-Integrate with Order Service using the SAGA pattern
+- Add tests (JUnit + Testcontainers)
 
-Service monitoring with Prometheus + Grafana
+- Integrate with Order Service using the SAGA pattern
+
+- Service monitoring with Prometheus + Grafana
+_______
 
 ## 👨‍💻 Author
 
-Andrij72 — demo project exploring microservice 
-architecture with Spring Boot, Kafka and Kubernetes.
+Andrij72 — demo project exploring microservice
+architecture with Spring Boot, Kafka, and Kubernetes.
