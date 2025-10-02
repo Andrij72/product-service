@@ -34,8 +34,8 @@ jobs:
           java-version: '21'
           distribution: 'temurin'
 
-      # - name: Run Checkstyle
-      #   run: mvn checkstyle:check
+      - name: Run Checkstyle
+        run: mvn checkstyle:check
 
       - name: Cache Maven packages
         uses: actions/cache@v3

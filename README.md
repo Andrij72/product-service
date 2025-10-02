@@ -14,7 +14,7 @@ It is built with **Spring Boot**, stores data in **MongoDB**, and integrates wit
 ---
 
 ## 🛠️ Tech Stack
-- **Java 17**
+- **Java 21**
 - **Spring Boot 3**
 - **Spring Data MongoDB**
 - **Apache Kafka**
@@ -38,33 +38,31 @@ product-service/
 ---
 
 ## ⚙️ Running Locally
-
-### 1️⃣ Clone the repository
+1️⃣ Clone the repository
 ```bash
 git clone https://github.com/Andrij72/product-service.git
-```
-
+````
 2️⃣ Start dependencies
 
- - **MongoDB** (standalone for tests):
+MongoDB (local, for tests):
 ```bash
 docker run -d -p 27017:27017 --name mongodb mongo:latest
 ```
- - **Kafka + Zookeeper** (for event-driven features):
+
+Kafka + Zookeeper (for event-driven features):
 ```bash
 docker-compose -f docker-compose/kafka.yml up -d
 ```
 
-- Or use **docker-compose examples** provided:
+Or use the prepared docker-compose files:
 
-`````
+```
 docker-compose-examples/
-  ├── mongo-only.yml           # MongoDB standalone
-  ├── build-local.yml          # MongoDB + build product-service locally
-  ├── dev-latest.yml           # MongoDB + dev-latest Docker image from Hub
-  └── release.yml              # MongoDB + release Docker image from Hub
-`````
-
+├── docker-compose.local.yml       # local MongoDB + build from local Dockerfile
+├── docker-compose.override.yml    # additional local settings for IntelliJ Run
+├── docker-compose.dev-latest.yml  # development: MongoDB + latest dev image
+└── docker-compose.prod.yml        # production: MongoDB + verified release image
+```
 3️⃣ Run the service
 ``` bash
 ./mvnw spring-boot:run
