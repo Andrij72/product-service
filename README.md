@@ -23,17 +23,23 @@ It is built with **Spring Boot** and stores data in **MongoDB**.
 ---
 
 ## 📂 Project Structure
-product-service/
-├── src/main/java/com/andrij72/product
-│ ├── controller # REST controllers
-│ ├── model # Data models
-│ ├── repository # MongoDB repositories
-│ └── service # Business logic
-└── src/main/resources
-└── application.properties
-
-yaml
-Copy code
+    PRODUCT-SERVICE/
+    ├── .github/workflows         # CI/CD configurations
+    ├── .idea                     # IDE settings
+    ├── .mvn/wrapper              # Maven Wrapper
+    ├── docker-compose-examples   # docker-compose files for local setup
+    ├── src/
+    │   ├── main/
+    │   │   ├── java/com/akul/microservices/product
+    │   │   │   ├── controller   # REST controllers
+    │   │   │   ├── dto          # Data Transfer Objects
+    │   │   │   ├── exception    # custom exceptions
+    │   │   │   ├── model        # entities/models
+    │   │   │   ├── repository   # MongoDB repositories
+    │   │   │   └── service      # business logic
+    │   │   └── resources        # application.properties, configurations
+    │   └── test/
+    │       └── java/com/akul/microservices/product
 
 ---
 
@@ -106,7 +112,6 @@ Database is cleaned before each test run, and a dedicated MongoDB container star
 
 ---
 👨‍💻 Author
-
 Andrij72 — demo project exploring microservice architecture with Spring Boot and MongoDB.
 
 ---
