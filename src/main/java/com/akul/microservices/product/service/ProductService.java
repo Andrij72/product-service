@@ -69,7 +69,30 @@ public class ProductService {
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new ProductNotFoundException(
                         "Product not found with id: " + id));
-        productRepository.deleteById(id);
+        productRepository.delete(product);
         log.info("Successfully deleted product: {}", product);
+    }
+
+    public ProductResponse getProductById(String id) {
+        Product product = productRepository.findById(id)
+                .orElseThrow(() -> new ProductNotFoundException(
+                        "Product not found with id: " + id));
+
+        return ProductResponse.from(product);
+    }
+
+
+    public ProductResponse updateProduct(String id,
+                                         ProductRequest productRequest) {
+        Product product = productRepository.findById(id)
+                .orElseThrow(() -> new ProductNotFoundException(
+                        "Product not found with id: " + id));
+
+        product.setName(productRequest.name());
+        product.setDescription(productRequest.description());
+        product.setPrice(productRequest.price());
+        Product updatedProduct = productRepository.save(product);
+
+        return ProductResponse.from(updatedProduct);
     }
 }

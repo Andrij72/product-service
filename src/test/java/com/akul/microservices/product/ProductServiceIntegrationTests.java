@@ -156,4 +156,100 @@ class ProductServiceIntegrationTests {
                 .body("price", Matchers.equalTo(2200.0f));
     }
 
+    @Test
+    void shouldGetProductById() {
+        String body = """
+            { "name": "MacBook Air", "description": "Apple ultrabook", "price": 1200.0 }
+            """;
+        String id = given()
+                .contentType("application/json")
+                .body(body)
+                .post("/api/v1/products")
+                .then()
+                .statusCode(201)
+                .extract()
+                .path("id");
+
+        given()
+                .when()
+                .get("/api/v1/products/{id}", id)
+                .then()
+                .statusCode(200)
+                .body("name", Matchers.equalTo("MacBook Air"))
+                .body("description", Matchers.equalTo("Apple ultrabook"))
+                .body("price", Matchers.equalTo(1200.0f));
+    }
+
+    @Test
+    void shouldDeleteProductById() {
+        String body = """
+            { "name": "Test Delete", "description": "To be deleted", "price": 50.0 }
+            """;
+        String id = given()
+                .contentType("application/json")
+                .body(body)
+                .post("/api/v1/products")
+                .then()
+                .statusCode(201)
+                .extract()
+                .path("id");
+
+        given()
+                .when()
+                .delete("/api/v1/products/{id}", id)
+                .then()
+                .statusCode(200)
+                .body(Matchers.equalTo("Product successfully deleted!"));
+
+        given()
+                .when()
+                .get("/api/v1/products/{id}", id)
+                .then()
+                .statusCode(404);
+    }
+
+    @Test
+    void shouldUpdateProduct() {
+        String body = """
+            { "name": "Old Name", "description": "Old Desc", "price": 100.0 }
+            """;
+        String id = given()
+                .contentType("application/json")
+                .body(body)
+                .post("/api/v1/products")
+                .then()
+                .statusCode(201)
+                .extract()
+                .path("id");
+
+        String updateBody = """
+            { "name": "New Name", "description": "New Desc", "price": 150.0 }
+            """;
+
+        given()
+                .contentType("application/json")
+                .body(updateBody)
+                .when()
+                .put("/api/v1/products/{id}", id)
+                .then()
+                .statusCode(200)
+                .body("name", Matchers.equalTo("New Name"))
+                .body("description", Matchers.equalTo("New Desc"))
+                .body("price", Matchers.equalTo(150.0f));
+    }
+
+    @Test
+    void shouldReturn404ForNonExistingProduct() {
+        given()
+                .when()
+                .get("/api/v1/products/{id}", "non-existing-id")
+                .then()
+                .statusCode(404);
+
+        given()
+                .when()
+                .delete("/api/v1/products/{id}", "non-existing-id")
+                .then()
+                .statusCode(404);
+    }
 }

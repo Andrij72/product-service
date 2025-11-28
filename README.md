@@ -71,11 +71,13 @@ or
 ## 📌 REST API Endpoints
 
 | Method | Endpoint                  | Description                     |
-| ------ | ------------------------- | ------------------------------- |
+|--------| ------------------------- | ------------------------------- |
 | POST   | `/api/v1/products`        | Create a new product            |
 | POST   | `/api/v1/products/batch`  | Create multiple products in batch |
 | GET    | `/api/v1/products`        | Get all products                |
 | GET    | `/api/v1/products/search` | Search product by name          |
+| GET    | `/api/v1/products/{id}`   | Get product by id                |
+| PUT    | `/api/v1/products/{id}`   | Update product by id                |
 | DELETE | `/api/v1/products/{id}`   | Delete a product                |
 
 ---
