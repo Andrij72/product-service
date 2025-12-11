@@ -9,41 +9,31 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
-import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.context.annotation.Import;
 import org.testcontainers.containers.MongoDBContainer;
-import org.testcontainers.utility.TestcontainersConfiguration;
+import org.testcontainers.utility.DockerImageName;
 
 import static io.restassured.RestAssured.given;
 
-@Import(TestcontainersConfiguration.class)
+@Import(org.testcontainers.utility.TestcontainersConfiguration.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class ProductServiceIntegrationTests {
 
-    @ServiceConnection
-    static MongoDBContainer mongoDBContainer = new MongoDBContainer("mongo:7.0.5");
+    static MongoDBContainer mongoDBContainer =
+            new MongoDBContainer(DockerImageName.parse("mongo:7.0.5"));
 
     @LocalServerPort
     private Integer port;
 
     static {
         mongoDBContainer.start();
+        System.setProperty("spring.data.mongodb.uri", mongoDBContainer.getReplicaSetUrl());
     }
 
     @BeforeEach
     void cleanDatabase() {
         try (MongoClient mongoClient = MongoClients.create(mongoDBContainer.getReplicaSetUrl())) {
-            long countBefore = mongoClient.getDatabase("test")
-                    .getCollection("products")
-                    .countDocuments();
-            System.out.println("Documents in 'products' before test: " + countBefore);
-
             mongoClient.getDatabase("test").drop();
-
-            long countAfterDrop = mongoClient.getDatabase("test")
-                    .getCollection("products")
-                    .countDocuments();
-            System.out.println("Documents in 'products' after drop: " + countAfterDrop);
         }
 
         RestAssured.baseURI = "http://localhost";
@@ -58,11 +48,11 @@ class ProductServiceIntegrationTests {
     @Test
     void shouldCreateProduct() {
         String requestBody = """
-                  {
-                       "name": "iPhone 1415 Pro",
-                       "description": "Apple smartphone with OLED display",
-                       "price": 1350.0
-                   }
+                { "sku": "iPhone-14-Pro",
+                  "name": "iPhone 14 Pro",
+                  "description": "Apple smartphone with OLED display",
+                  "price": 1350.0
+                }
                 """;
 
         given()
@@ -72,9 +62,8 @@ class ProductServiceIntegrationTests {
                 .post("/api/v1/products")
                 .then()
                 .statusCode(201)
-                .body("id", Matchers.notNullValue())
-
-                .body("name", Matchers.equalTo("iPhone 1415 Pro"))
+                .body("sku", Matchers.equalTo("iPhone-14-Pro"))
+                .body("name", Matchers.equalTo("iPhone 14 Pro"))
                 .body("description", Matchers.equalTo("Apple smartphone with OLED display"))
                 .body("price", Matchers.equalTo(1350.0f));
     }
@@ -83,8 +72,8 @@ class ProductServiceIntegrationTests {
     void shouldCreateProductsBatchAndReturnThem() {
         String requestBody = """
                 [
-                  { "name": "Samsung A90", "description": "Smartphone", "price": 1000 },
-                  { "name": "iPhone 14 Pro", "description": "Apple smartphone with OLED display", "price": 1350 }
+                  { "sku": "Samsung-A90","name": "Samsung A90", "description": "Smartphone", "price": 1000 },
+                  { "sku": "iPhone-14-Pro","name": "iPhone 14 Pro", "description": "Apple smartphone with OLED display", "price": 1350 }
                 ]
                 """;
 
@@ -96,18 +85,16 @@ class ProductServiceIntegrationTests {
                 .then()
                 .statusCode(201)
                 .body("size()", Matchers.equalTo(2))
-                .body("[0].id", Matchers.notNullValue())
-                .body("[0].name", Matchers.equalTo("Samsung A90"))
-                .body("[1].name", Matchers.equalTo("iPhone 14 Pro"));
+                .body("[0].sku", Matchers.equalTo("Samsung-A90"))
+                .body("[1].sku", Matchers.equalTo("iPhone-14-Pro"));
     }
 
     @Test
     void shouldReturnAllProductsAfterBatchInsert() {
-
         String requestBody = """
                 [
-                  { "name": "Dell XPS 13", "description": "Compact ultrabook", "price": 1800.0 },
-                  { "name": "Sony WH-1000XM5", "description": "Wireless headphones", "price": 500.0 }
+                  { "sku": "Dell-XPS-13", "name": "Dell XPS 13", "description": "Compact ultrabook", "price": 1800.0 },
+                  { "sku": "Sony-WH-1000XM5", "name": "Sony WH-1000XM5", "description": "Wireless headphones", "price": 500.0 }
                 ]
                 """;
 
@@ -117,7 +104,6 @@ class ProductServiceIntegrationTests {
                 .post("/api/v1/products/batch")
                 .then()
                 .statusCode(201);
-
 
         given()
                 .when()
@@ -125,85 +111,61 @@ class ProductServiceIntegrationTests {
                 .then()
                 .statusCode(200)
                 .body("size()", Matchers.greaterThanOrEqualTo(2))
-                .body("name", Matchers.hasItems("Dell XPS 13", "Sony WH-1000XM5"));
+                .body("sku", Matchers.hasItems("Dell-XPS-13", "Sony-WH-1000XM5"));
     }
 
-    @Test
-    void shouldFindProductByName() {
 
-        String requestBody = """
-                [
-                  { "name": "Asus ROG Strix G15", "description": "Gaming laptop", "price": 2200.0 }
-                ]
+    @Test
+    void shouldGetProductBySku() {
+        String body = """
+                { "sku": "MACBOOK-AIR","name": "MacBook Air", "description": "Apple ultrabook", "price": 1200.0 }
                 """;
 
-        given()
-                .contentType("application/json")
-                .body(requestBody)
-                .post("/api/v1/products/batch")
-                .then()
-                .statusCode(201);
-
-
-        given()
-                .queryParam("name", "Asus ROG Strix G15")
-                .when()
-                .get("/api/v1/products/search")
-                .then()
-                .statusCode(200)
-                .body("name", Matchers.equalTo("Asus ROG Strix G15"))
-                .body("description", Matchers.equalTo("Gaming laptop"))
-                .body("price", Matchers.equalTo(2200.0f));
-    }
-
-    @Test
-    void shouldGetProductById() {
-        String body = """
-            { "name": "MacBook Air", "description": "Apple ultrabook", "price": 1200.0 }
-            """;
-        String id = given()
+        String sku = given()
                 .contentType("application/json")
                 .body(body)
                 .post("/api/v1/products")
                 .then()
                 .statusCode(201)
                 .extract()
-                .path("id");
+                .path("sku");
 
         given()
                 .when()
-                .get("/api/v1/products/{id}", id)
+                .get("/api/v1/products/{sku}", sku)
                 .then()
                 .statusCode(200)
+                .body("sku", Matchers.equalTo("MACBOOK-AIR"))
                 .body("name", Matchers.equalTo("MacBook Air"))
                 .body("description", Matchers.equalTo("Apple ultrabook"))
                 .body("price", Matchers.equalTo(1200.0f));
     }
 
     @Test
-    void shouldDeleteProductById() {
+    void shouldDeleteProductBySku() {
         String body = """
-            { "name": "Test Delete", "description": "To be deleted", "price": 50.0 }
-            """;
-        String id = given()
+                { "sku": "TEST-DELETE","name": "Test Delete", "description": "To be deleted", "price": 50.0 }
+                """;
+
+        String sku = given()
                 .contentType("application/json")
                 .body(body)
                 .post("/api/v1/products")
                 .then()
                 .statusCode(201)
                 .extract()
-                .path("id");
+                .path("sku");
 
         given()
                 .when()
-                .delete("/api/v1/products/{id}", id)
+                .delete("/api/v1/products/{sku}", sku)
                 .then()
                 .statusCode(200)
                 .body(Matchers.equalTo("Product successfully deleted!"));
 
         given()
                 .when()
-                .get("/api/v1/products/{id}", id)
+                .get("/api/v1/products/{sku}", sku)
                 .then()
                 .statusCode(404);
     }
@@ -211,28 +173,30 @@ class ProductServiceIntegrationTests {
     @Test
     void shouldUpdateProduct() {
         String body = """
-            { "name": "Old Name", "description": "Old Desc", "price": 100.0 }
-            """;
-        String id = given()
+                { "sku": "OLD-PRODUCT","name": "Old Name", "description": "Old Desc", "price": 100.0 }
+                """;
+
+        String sku = given()
                 .contentType("application/json")
                 .body(body)
                 .post("/api/v1/products")
                 .then()
                 .statusCode(201)
                 .extract()
-                .path("id");
+                .path("sku");
 
         String updateBody = """
-            { "name": "New Name", "description": "New Desc", "price": 150.0 }
-            """;
+                { "sku": "OLD-PRODUCT","name": "New Name", "description": "New Desc", "price": 150.0 }
+                """;
 
         given()
                 .contentType("application/json")
                 .body(updateBody)
                 .when()
-                .put("/api/v1/products/{id}", id)
+                .put("/api/v1/products/{sku}", sku)
                 .then()
                 .statusCode(200)
+                .body("sku", Matchers.equalTo("OLD-PRODUCT"))
                 .body("name", Matchers.equalTo("New Name"))
                 .body("description", Matchers.equalTo("New Desc"))
                 .body("price", Matchers.equalTo(150.0f));
@@ -242,13 +206,13 @@ class ProductServiceIntegrationTests {
     void shouldReturn404ForNonExistingProduct() {
         given()
                 .when()
-                .get("/api/v1/products/{id}", "non-existing-id")
+                .get("/api/v1/products/{sku}", "non-existing-sku")
                 .then()
                 .statusCode(404);
 
         given()
                 .when()
-                .delete("/api/v1/products/{id}", "non-existing-id")
+                .delete("/api/v1/products/{sku}", "non-existing-sku")
                 .then()
                 .statusCode(404);
     }

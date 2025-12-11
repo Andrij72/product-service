@@ -8,7 +8,7 @@ package com.akul.microservices.product.exception;
  * @since 8/21/2025
  */
 public class ProductNotFoundException extends RuntimeException {
-    public ProductNotFoundException(final String name) {
-        super("Product with name '%s' is absent!".formatted(name));
+    public ProductNotFoundException(final String sku) {
+        super("Product with SKU '%s' is absent!".formatted(sku));
     }
 }

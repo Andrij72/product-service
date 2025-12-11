@@ -14,6 +14,8 @@ import java.util.Optional;
  */
 public interface ProductRepository extends MongoRepository<Product, String> {
 
-    Optional<Product> findByName(String name);
+    Optional<Product> findBySku(String sku);
+    void deleteBySku(String sku);
+    boolean existsBySku(String sku);
 
 }

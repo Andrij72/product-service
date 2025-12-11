@@ -57,26 +57,34 @@ public class ProductController {
     @GetMapping("/search")
     @ResponseStatus(HttpStatus.OK)
     public ProductResponse getProductByName(
-            @RequestParam("name") final String name) {
-        return productService.getProduct(name);
+            @RequestParam("sku") final String sku) {
+        return productService.getProductBySku(sku);
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<String> deleteProduct(@PathVariable final String id) {
-        productService.deleteById(id);
+    @DeleteMapping("/{sku}")
+    public ResponseEntity<String> deleteProduct(
+            @PathVariable final String sku) {
+        productService.deleteBySku(sku);
         return ResponseEntity.ok("Product successfully deleted!");
     }
 
-    @GetMapping("/{id}")
-    @ResponseStatus(HttpStatus.OK)
-    public ProductResponse getProduct(@PathVariable final String id) {
-        return productService.getProductById(id);
+    @DeleteMapping
+    public ResponseEntity<String> deleteAllProducts() {
+        productService.deleteAllProducts();
+        return ResponseEntity.ok("All Products successfully deleted!");
     }
 
-    @PutMapping("/{id}")
-    public ProductResponse updateProduct(
-            @PathVariable String id,
-            @RequestBody final ProductRequest productRequest) {
-        return productService.updateProduct(id, productRequest);
+    @GetMapping("/{sku}")
+    @ResponseStatus(HttpStatus.OK)
+    public ProductResponse getProduct(@PathVariable final String sku) {
+        return productService.getProductBySku(sku);
     }
+
+    @PutMapping("/{sku}")
+    public ProductResponse updateProduct(
+            @PathVariable String sku,
+            @RequestBody final ProductRequest productRequest) {
+        return productService.updateProduct(sku, productRequest);
+    }
+
 }

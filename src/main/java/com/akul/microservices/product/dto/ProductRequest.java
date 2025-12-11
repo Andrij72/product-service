@@ -9,8 +9,9 @@ import java.math.BigDecimal;
  * @version 1.0
  * @since 8/19/2025
  */
-public record ProductRequest(String id,
-                             String name,
-                             String description,
-                             BigDecimal price) {
+public record ProductRequest(
+        String sku,
+        String name,
+        String description,
+        BigDecimal price) {
 }

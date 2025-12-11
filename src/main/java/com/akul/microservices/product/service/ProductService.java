@@ -2,6 +2,7 @@ package com.akul.microservices.product.service;
 
 import com.akul.microservices.product.dto.ProductRequest;
 import com.akul.microservices.product.dto.ProductResponse;
+import com.akul.microservices.product.exception.ProductAlreadyExistsException;
 import com.akul.microservices.product.exception.ProductNotFoundException;
 import com.akul.microservices.product.model.Product;
 import com.akul.microservices.product.repository.ProductRepository;
@@ -27,28 +28,22 @@ public class ProductService {
     }
 
     public ProductResponse createProduct(ProductRequest productRequest) {
-
+        if (productRepository.existsBySku(productRequest.sku())) {
+            throw new ProductAlreadyExistsException(productRequest.sku());
+        }
         Product product = Product.builder()
+                .sku(productRequest.sku())
                 .name(productRequest.name())
                 .price(productRequest.price())
                 .description(productRequest.description())
                 .build();
+
         productRepository.save(product);
         log.info("Successfully created product: {}", product);
-        return new ProductResponse(product.getId(),
+        return new ProductResponse(product.getSku(),
                 product.getName(),
                 product.getDescription(),
                 product.getPrice());
-    }
-
-    public ProductResponse getProduct(String name) {
-        return productRepository.findByName(name)
-                .map(ProductResponse::from)
-                .orElseThrow(
-                        () -> new RuntimeException(
-                                "Product with name %s is absent!"
-                                        .formatted(name))
-                );
     }
 
     public List<ProductResponse> getAllProducts() {
@@ -65,28 +60,24 @@ public class ProductService {
                 .toList();
     }
 
-    public void deleteById(String id) {
-        Product product = productRepository.findById(id)
-                .orElseThrow(() -> new ProductNotFoundException(
-                        "Product not found with id: " + id));
-        productRepository.delete(product);
+    public void deleteBySku(String sku) {
+        Product product = productRepository.findBySku(sku)
+                .orElseThrow(() -> new ProductNotFoundException(sku));
+        productRepository.deleteBySku(sku);
         log.info("Successfully deleted product: {}", product);
     }
 
-    public ProductResponse getProductById(String id) {
-        Product product = productRepository.findById(id)
-                .orElseThrow(() -> new ProductNotFoundException(
-                        "Product not found with id: " + id));
+    public ProductResponse getProductBySku(String sku) {
+        Product product = productRepository.findBySku(sku)
+                .orElseThrow(() -> new ProductNotFoundException(sku));
 
         return ProductResponse.from(product);
     }
 
-
-    public ProductResponse updateProduct(String id,
+    public ProductResponse updateProduct(String sku,
                                          ProductRequest productRequest) {
-        Product product = productRepository.findById(id)
-                .orElseThrow(() -> new ProductNotFoundException(
-                        "Product not found with id: " + id));
+        Product product = productRepository.findBySku(sku)
+                .orElseThrow(() -> new ProductNotFoundException(sku));
 
         product.setName(productRequest.name());
         product.setDescription(productRequest.description());
@@ -94,5 +85,9 @@ public class ProductService {
         Product updatedProduct = productRepository.save(product);
 
         return ProductResponse.from(updatedProduct);
+    }
+
+    public void deleteAllProducts() {
+        productRepository.deleteAll();
     }
 }

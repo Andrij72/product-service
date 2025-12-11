@@ -69,17 +69,19 @@ or
 ```
 ---
 ## 📌 REST API Endpoints
+Heer is used SKU (Stock Keeping Unit) – a unique identifier for each product.
+It helps track inventory, sales, and product details easily.
 
-| Method | Endpoint                  | Description                     |
-|--------| ------------------------- | ------------------------------- |
-| POST   | `/api/v1/products`        | Create a new product            |
+| Method | Endpoint                  | Description                       |
+|--------|---------------------------|-----------------------------------|
+| POST   | `/api/v1/products`        | Create a new product              |
 | POST   | `/api/v1/products/batch`  | Create multiple products in batch |
-| GET    | `/api/v1/products`        | Get all products                |
-| GET    | `/api/v1/products/search` | Search product by name          |
-| GET    | `/api/v1/products/{id}`   | Get product by id                |
-| PUT    | `/api/v1/products/{id}`   | Update product by id                |
-| DELETE | `/api/v1/products/{id}`   | Delete a product                |
-
+| GET    | `/api/v1/products`        | Get all products                  |
+| GET    | `/api/v1/products/search` | Search product by name            |
+| GET    | `/api/v1/products/{sku}`  | Get product by sku                |
+| PUT    | `/api/v1/products/{sku}`  | Update product by sku             |
+| DELETE | `/api/v1/products/{sku}`  | Delete a product                  |
+| DELETE | `/api/v1/products`        | Delete all products               |
 ---
 ## 🛠️ Development Workflow
 
@@ -108,7 +110,7 @@ They cover:
 
 - ✅ Retrieving all products
 
-- ✅ Searching products by name
+- ✅ Searching products by sku
 
 Database is cleaned before each test run, and a dedicated MongoDB container starts automatically.
 
