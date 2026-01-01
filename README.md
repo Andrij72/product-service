@@ -6,9 +6,10 @@ It is built with **Spring Boot** and stores data in **MongoDB**.
 ---
 
 ## 🚀 Features
-- Create new products
-- Update and delete existing products
-- Fetch all products or a specific product by ID
+* Public endpoints to view products
+* Admin endpoints to create, update, delete, enable/disable products
+* Batch operations: create multiple products, delete multiple products
+* Fetch all products or a specific product by SKU
 
 ---
 
@@ -31,7 +32,7 @@ It is built with **Spring Boot** and stores data in **MongoDB**.
     ├── src/
     │   ├── main/
     │   │   ├── java/com/akul/microservices/product
-    │   │   │   ├── controller   # REST controllers
+    │   │   │   ├── controller   # REST controllers (Public + Admin)
     │   │   │   ├── dto          # Data Transfer Objects
     │   │   │   ├── exception    # custom exceptions
     │   │   │   ├── model        # entities/models
@@ -69,19 +70,48 @@ or
 ```
 ---
 ## 📌 REST API Endpoints
-Heer is used SKU (Stock Keeping Unit) – a unique identifier for each product.
+Here is used SKU (Stock Keeping Unit) – a unique identifier for each product.
 It helps track inventory, sales, and product details easily.
 
-| Method | Endpoint                  | Description                       |
-|--------|---------------------------|-----------------------------------|
-| POST   | `/api/v1/products`        | Create a new product              |
-| POST   | `/api/v1/products/batch`  | Create multiple products in batch |
-| GET    | `/api/v1/products`        | Get all products                  |
-| GET    | `/api/v1/products/search` | Search product by name            |
-| GET    | `/api/v1/products/{sku}`  | Get product by sku                |
-| PUT    | `/api/v1/products/{sku}`  | Update product by sku             |
-| DELETE | `/api/v1/products/{sku}`  | Delete a product                  |
-| DELETE | `/api/v1/products`        | Delete all products               |
+### =====Public API=====
+| Method | Endpoint                   | Description                       |
+|--------|----------------------------|-----------------------------------|
+| GET    | `/api/v1/products/{sku}`   | Get product by SKU                |
+| GET    | `/api/v1/products`         | Get paginated list of products    |
+### =====Admin API=====
+| Method   | Endpoint                  | Description                       |
+|----------|---------------------------|-----------------------------------|
+| POST     | `/api/v1/admin/products`  | Create a new product              |
+| POST     | `/api/v1/admin/products/batch`| Create multiple products in batch |
+| PUT      | `/api/v1/admin/products/{sku}`  | Update product by sku             |
+| PATCH    | `/api/v1/admin/products/{sku}/disable` | disable product (soft delete)     |
+| PATCH    | `/api/v1/admin/products/{sku}/enable`  | Enable previously disabled product|
+| DELETE   | `/api/v1/admin/products/batch`| Delete products by list of SKUs (hard delete)|
+
+##### Notes
+
+* ***Public API*** returns only enabled products.
+* 
+* ***Admin API*** allows full product lifecycle management.
+* 
+* Batch delete expects a JSON array of SKUs:
+```json
+["SKU123", "SKU456", "SKU789"]
+```
+----------
+### 📬 Postman Collection
+
+To simplify API testing and avoid duplicating request examples in the documentation,
+a ready-to-use Postman collection is provided with the project.
+
+📁 Location in repository
+
+The collection file is available in the root of the project:
+
+```bash
+Microservices product-service.postman_collection.json
+```
+
 ---
 ## 🛠️ Development Workflow
 

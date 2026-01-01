@@ -1,12 +1,16 @@
 package com.akul.microservices.product.service;
 
+import com.akul.microservices.product.dto.AdminProductResponse;
 import com.akul.microservices.product.dto.ProductRequest;
 import com.akul.microservices.product.dto.ProductResponse;
+import com.akul.microservices.product.dto.ProductUpdateRequest;
 import com.akul.microservices.product.exception.ProductAlreadyExistsException;
 import com.akul.microservices.product.exception.ProductNotFoundException;
 import com.akul.microservices.product.model.Product;
 import com.akul.microservices.product.repository.ProductRepository;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -27,67 +31,83 @@ public class ProductService {
         this.productRepository = productRepository;
     }
 
-    public ProductResponse createProduct(ProductRequest productRequest) {
-        if (productRepository.existsBySku(productRequest.sku())) {
-            throw new ProductAlreadyExistsException(productRequest.sku());
+
+    public Product createAdminProduct(ProductRequest request) {
+        if (productRepository.existsBySku(request.sku())) {
+            throw new ProductAlreadyExistsException(request.sku());
         }
-        Product product = Product.builder()
-                .sku(productRequest.sku())
-                .name(productRequest.name())
-                .price(productRequest.price())
-                .description(productRequest.description())
-                .build();
 
+        Product product = Product.builder().sku(request.sku())
+                .name(request.name()).description(request.description())
+                .price(request.price()).enabled(true).build();
+
+        Product saved = productRepository.save(product);
+        log.info("Admin created product {}", saved.getSku());
+
+        return saved;
+    }
+
+    public AdminProductResponse updateAdminProduct(
+            String sku, ProductUpdateRequest request) {
+        Product product = productRepository.findBySku(sku).orElseThrow(
+                () -> new ProductNotFoundException(sku));
+
+        product.setName(request.name());
+        product.setDescription(request.description());
+        product.setPrice(request.price());
+
+        Product saved = productRepository.save(product);
+        log.info("Admin updated product {}", sku);
+
+        return AdminProductResponse.from(saved);
+    }
+
+    public void disableProduct(String sku) {
+        Product product = productRepository.findBySku(sku).orElseThrow(
+                () -> new ProductNotFoundException(sku));
+
+        product.setEnabled(false);
         productRepository.save(product);
-        log.info("Successfully created product: {}", product);
-        return new ProductResponse(product.getSku(),
-                product.getName(),
-                product.getDescription(),
-                product.getPrice());
+
+        log.info("Product disabled {}", sku);
     }
 
-    public List<ProductResponse> getAllProducts() {
-        List<Product> products = productRepository.findAll();
-        log.info("Found {} products in DB", products.size());
-        return products.stream()
-                .map(ProductResponse::from)
-                .toList();
+    public void enableProduct(String sku) {
+        Product product = productRepository.findBySku(sku).orElseThrow(
+                () -> new ProductNotFoundException(sku));
+
+        product.setEnabled(true);
+        productRepository.save(product);
+
+        log.info("Product enabled {}", sku);
     }
 
-    public List<ProductResponse> createProducts(List<ProductRequest> products) {
-        return products.stream()
-                .map(this::createProduct)
-                .toList();
+    public Page<AdminProductResponse> getAdminProducts(Pageable pageable) {
+        return productRepository.findAll(pageable)
+                .map(AdminProductResponse::from);
     }
 
-    public void deleteBySku(String sku) {
+    public void deleteProducts(List<String> skus) {
+        List<Product> products = productRepository.findAllBySkuIn(skus);
+        if (products.isEmpty()) {
+            return;
+        }
+        productRepository.deleteAll(products);
+        log.info("Deleted products: {}", skus);
+    }
+
+    //========Public=======
+    public Page<ProductResponse> getPublicProducts(Pageable pageable) {
+        return productRepository
+                .findAllByEnabledTrue(pageable)
+                .map(ProductResponse::from);
+    }
+
+    public ProductResponse getPublicProductBySku(String sku) {
         Product product = productRepository.findBySku(sku)
-                .orElseThrow(() -> new ProductNotFoundException(sku));
-        productRepository.deleteBySku(sku);
-        log.info("Successfully deleted product: {}", product);
-    }
-
-    public ProductResponse getProductBySku(String sku) {
-        Product product = productRepository.findBySku(sku)
-                .orElseThrow(() -> new ProductNotFoundException(sku));
+                .filter(Product::isEnabled).orElseThrow(
+                        () -> new ProductNotFoundException(sku));
 
         return ProductResponse.from(product);
-    }
-
-    public ProductResponse updateProduct(String sku,
-                                         ProductRequest productRequest) {
-        Product product = productRepository.findBySku(sku)
-                .orElseThrow(() -> new ProductNotFoundException(sku));
-
-        product.setName(productRequest.name());
-        product.setDescription(productRequest.description());
-        product.setPrice(productRequest.price());
-        Product updatedProduct = productRepository.save(product);
-
-        return ProductResponse.from(updatedProduct);
-    }
-
-    public void deleteAllProducts() {
-        productRepository.deleteAll();
     }
 }
