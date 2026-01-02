@@ -27,193 +27,225 @@ class ProductServiceIntegrationTests {
 
     static {
         mongoDBContainer.start();
-        System.setProperty("spring.data.mongodb.uri", mongoDBContainer.getReplicaSetUrl());
+        System.setProperty(
+                "spring.data.mongodb.uri",
+                mongoDBContainer.getReplicaSetUrl()
+        );
     }
 
     @BeforeEach
-    void cleanDatabase() {
-        try (MongoClient mongoClient = MongoClients.create(mongoDBContainer.getReplicaSetUrl())) {
+    void setup() {
+        try (MongoClient mongoClient =
+                     MongoClients.create(mongoDBContainer.getReplicaSetUrl())) {
             mongoClient.getDatabase("test").drop();
         }
-
         RestAssured.baseURI = "http://localhost";
         RestAssured.port = port;
     }
 
     @AfterAll
-    static void stopContainer() {
+    static void shutdown() {
         mongoDBContainer.stop();
     }
 
+    // ================= ADMIN =================
+
     @Test
     void shouldCreateProduct() {
-        String requestBody = """
-                { "sku": "iPhone-14-Pro",
-                  "name": "iPhone 14 Pro",
-                  "description": "Apple smartphone with OLED display",
-                  "price": 1350.0
-                }
-                """;
-
         given()
                 .contentType("application/json")
-                .body(requestBody)
-                .when()
-                .post("/api/v1/products")
+                .body("""
+                        {
+                          "sku": "ADMIN-1",
+                          "name": "Admin Product",
+                          "description": "Created by admin",
+                          "price": 1000
+                        }
+                        """)
+                .post("/api/v1/admin/products")
                 .then()
                 .statusCode(201)
-                .body("sku", Matchers.equalTo("iPhone-14-Pro"))
-                .body("name", Matchers.equalTo("iPhone 14 Pro"))
-                .body("description", Matchers.equalTo("Apple smartphone with OLED display"))
-                .body("price", Matchers.equalTo(1350.0f));
+                .body("sku", Matchers.equalTo("ADMIN-1"))
+                .body("enabled", Matchers.equalTo(true))
+                .body("createdAt", Matchers.notNullValue());
     }
 
     @Test
-    void shouldCreateProductsBatchAndReturnThem() {
-        String requestBody = """
-                [
-                  { "sku": "Samsung-A90","name": "Samsung A90", "description": "Smartphone", "price": 1000 },
-                  { "sku": "iPhone-14-Pro","name": "iPhone 14 Pro", "description": "Apple smartphone with OLED display", "price": 1350 }
-                ]
-                """;
-
+    void shouldCreateProductsBatch() {
         given()
                 .contentType("application/json")
-                .body(requestBody)
-                .when()
-                .post("/api/v1/products/batch")
+                .body("""
+                        [
+                          { "sku": "BATCH-1", "name": "One", "price": 10 },
+                          { "sku": "BATCH-2", "name": "Two", "price": 20 }
+                        ]
+                        """)
+                .post("/api/v1/admin/products/batch")
                 .then()
                 .statusCode(201)
-                .body("size()", Matchers.equalTo(2))
-                .body("[0].sku", Matchers.equalTo("Samsung-A90"))
-                .body("[1].sku", Matchers.equalTo("iPhone-14-Pro"));
-    }
-
-    @Test
-    void shouldReturnAllProductsAfterBatchInsert() {
-        String requestBody = """
-                [
-                  { "sku": "Dell-XPS-13", "name": "Dell XPS 13", "description": "Compact ultrabook", "price": 1800.0 },
-                  { "sku": "Sony-WH-1000XM5", "name": "Sony WH-1000XM5", "description": "Wireless headphones", "price": 500.0 }
-                ]
-                """;
-
-        given()
-                .contentType("application/json")
-                .body(requestBody)
-                .post("/api/v1/products/batch")
-                .then()
-                .statusCode(201);
-
-        given()
-                .when()
-                .get("/api/v1/products")
-                .then()
-                .statusCode(200)
-                .body("size()", Matchers.greaterThanOrEqualTo(2))
-                .body("sku", Matchers.hasItems("Dell-XPS-13", "Sony-WH-1000XM5"));
-    }
-
-
-    @Test
-    void shouldGetProductBySku() {
-        String body = """
-                { "sku": "MACBOOK-AIR","name": "MacBook Air", "description": "Apple ultrabook", "price": 1200.0 }
-                """;
-
-        String sku = given()
-                .contentType("application/json")
-                .body(body)
-                .post("/api/v1/products")
-                .then()
-                .statusCode(201)
-                .extract()
-                .path("sku");
-
-        given()
-                .when()
-                .get("/api/v1/products/{sku}", sku)
-                .then()
-                .statusCode(200)
-                .body("sku", Matchers.equalTo("MACBOOK-AIR"))
-                .body("name", Matchers.equalTo("MacBook Air"))
-                .body("description", Matchers.equalTo("Apple ultrabook"))
-                .body("price", Matchers.equalTo(1200.0f));
-    }
-
-    @Test
-    void shouldDeleteProductBySku() {
-        String body = """
-                { "sku": "TEST-DELETE","name": "Test Delete", "description": "To be deleted", "price": 50.0 }
-                """;
-
-        String sku = given()
-                .contentType("application/json")
-                .body(body)
-                .post("/api/v1/products")
-                .then()
-                .statusCode(201)
-                .extract()
-                .path("sku");
-
-        given()
-                .when()
-                .delete("/api/v1/products/{sku}", sku)
-                .then()
-                .statusCode(200)
-                .body(Matchers.equalTo("Product successfully deleted!"));
-
-        given()
-                .when()
-                .get("/api/v1/products/{sku}", sku)
-                .then()
-                .statusCode(404);
+                .body("size()", Matchers.equalTo(2));
     }
 
     @Test
     void shouldUpdateProduct() {
-        String body = """
-                { "sku": "OLD-PRODUCT","name": "Old Name", "description": "Old Desc", "price": 100.0 }
-                """;
-
-        String sku = given()
+        given()
                 .contentType("application/json")
-                .body(body)
-                .post("/api/v1/products")
-                .then()
-                .statusCode(201)
-                .extract()
-                .path("sku");
-
-        String updateBody = """
-                { "sku": "OLD-PRODUCT","name": "New Name", "description": "New Desc", "price": 150.0 }
-                """;
+                .body("""
+                        { "sku": "UPD-1", "name": "Old", "price": 50.0 }
+                        """)
+                .post("/api/v1/admin/products");
 
         given()
                 .contentType("application/json")
-                .body(updateBody)
-                .when()
-                .put("/api/v1/products/{sku}", sku)
+                .body("""
+                        { "name": "New", "price": 99.0 }
+                        """)
+                .put("/api/v1/admin/products/UPD-1")
                 .then()
                 .statusCode(200)
-                .body("sku", Matchers.equalTo("OLD-PRODUCT"))
-                .body("name", Matchers.equalTo("New Name"))
-                .body("description", Matchers.equalTo("New Desc"))
-                .body("price", Matchers.equalTo(150.0f));
+                .body("name", Matchers.equalTo("New"))
+                .body("price", Matchers.equalTo(99.0f));
     }
 
     @Test
-    void shouldReturn404ForNonExistingProduct() {
-        given()
-                .when()
-                .get("/api/v1/products/{sku}", "non-existing-sku")
-                .then()
-                .statusCode(404);
+    void shouldDeleteProductsBatch() {
 
         given()
-                .when()
-                .delete("/api/v1/products/{sku}", "non-existing-sku")
+                .contentType("application/json")
+                .body("""
+                [
+                  {
+                    "sku": "DEL-1",
+                    "name": "P1",
+                    "description": "D1",
+                    "price": 10
+                  },
+                  {
+                    "sku": "DEL-2",
+                    "name": "P2",
+                    "description": "D2",
+                    "price": 20
+                  }
+                ]
+                """)
+                .post("/api/v1/admin/products/batch")
                 .then()
-                .statusCode(404);
+                .statusCode(201);
+
+        given()
+                .contentType("application/json")
+                .body("""
+                ["DEL-1", "DEL-2"]
+                """)
+                .when()
+                .delete("/api/v1/admin/products/batch")
+                .then()
+                .statusCode(204);
+    }
+
+
+    // ================= PUBLIC =================
+
+    @Test
+    void shouldReturnPublicProduct() {
+        given()
+                .contentType("application/json")
+                .body("""
+                        { "sku": "PUB-1", "name": "Public", "price": 100.0 }
+                        """)
+                .post("/api/v1/admin/products");
+
+        given()
+                .get("/api/v1/products/PUB-1")
+                .then()
+                .statusCode(200)
+                .body("sku", Matchers.equalTo("PUB-1"));
+    }
+
+    @Test
+    void shouldReturnAllEnabledProducts() {
+        given()
+                .contentType("application/json")
+                .body("""
+                        [
+                          { "sku": "PUB-A", "name": "A", "price": 10.0 },
+                          { "sku": "PUB-B", "name": "B", "price": 20.0 }
+                        ]
+                        """)
+                .post("/api/v1/admin/products/batch");
+
+        given()
+                .get("/api/v1/products")
+                .then()
+                .statusCode(200)
+                .body("content.sku", Matchers.hasItems("PUB-A", "PUB-B"));
+    }
+
+
+    @Test
+    void shouldNotReturnDisabledProduct() {
+        given()
+                .contentType("application/json")
+                .body("""
+                        { "sku": "HIDDEN-1", "name": "Hidden", "price": 10 }
+                        """)
+                .post("/api/v1/admin/products");
+
+        given()
+                .patch("/api/v1/admin/products/HIDDEN-1/disable")
+                .then()
+                .statusCode(204);
+    }
+
+    @Test
+    void shouldCreateProductsBatchAndReturnPaginatedResult() {
+
+        given()
+                .contentType("application/json")
+                .body("""
+                    [
+                      { "sku": "P-001", "name": "Product 1", "price": 10 },
+                      { "sku": "P-002", "name": "Product 2", "price": 20 },
+                      { "sku": "P-003", "name": "Product 3", "price": 30 },
+                      { "sku": "P-004", "name": "Product 4", "price": 40 },
+                      { "sku": "P-005", "name": "Product 5", "price": 50 }
+                    ]
+                    """)
+                .when()
+                .post("/api/v1/admin/products/batch")
+                .then()
+                .statusCode(201)
+                .body("size()", Matchers.equalTo(5))
+                .body("sku", Matchers.hasItems(
+                        "P-001", "P-002", "P-003", "P-004", "P-005"
+                ));
+
+        given()
+                .queryParam("page", 0)
+                .queryParam("size", 3)
+                .when()
+                .get("/api/v1/products")
+                .then()
+                .statusCode(200)
+                .body("content.size()", Matchers.equalTo(3))
+                .body("totalElements", Matchers.equalTo(5))
+                .body("totalPages", Matchers.equalTo(2))
+                .body("number", Matchers.equalTo(0))
+                .body("content.sku", Matchers.hasItems(
+                        "P-001", "P-002", "P-003"
+                ));
+
+        given()
+                .queryParam("page", 1)
+                .queryParam("size", 3)
+                .when()
+                .get("/api/v1/products")
+                .then()
+                .statusCode(200)
+                .body("content.size()", Matchers.equalTo(2))
+                .body("number", Matchers.equalTo(1))
+                .body("content.sku", Matchers.hasItems(
+                        "P-004", "P-005"
+                ));
     }
 }

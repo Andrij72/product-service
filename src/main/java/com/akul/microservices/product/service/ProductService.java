@@ -32,7 +32,7 @@ public class ProductService {
     }
 
 
-    public Product createAdminProduct(ProductRequest request) {
+    public AdminProductResponse createAdminProduct(ProductRequest request) {
         if (productRepository.existsBySku(request.sku())) {
             throw new ProductAlreadyExistsException(request.sku());
         }
@@ -44,7 +44,7 @@ public class ProductService {
         Product saved = productRepository.save(product);
         log.info("Admin created product {}", saved.getSku());
 
-        return saved;
+        return AdminProductResponse.from(saved);
     }
 
     public AdminProductResponse updateAdminProduct(

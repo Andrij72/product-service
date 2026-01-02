@@ -3,7 +3,6 @@ package com.akul.microservices.product.controller;
 import com.akul.microservices.product.dto.AdminProductResponse;
 import com.akul.microservices.product.dto.ProductRequest;
 import com.akul.microservices.product.dto.ProductUpdateRequest;
-import com.akul.microservices.product.model.Product;
 import com.akul.microservices.product.service.ProductService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -56,7 +55,7 @@ public class AdminProductController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public Product createProduct(
+    public AdminProductResponse createProduct(
             @Valid @RequestBody ProductRequest request
     ) {
         return productService.createAdminProduct(request);
@@ -68,7 +67,6 @@ public class AdminProductController {
             @RequestBody final List<ProductRequest> products) {
         return products.stream()
                 .map(productService::createAdminProduct)
-                .map(AdminProductResponse::from)
                 .toList();
     }
 
