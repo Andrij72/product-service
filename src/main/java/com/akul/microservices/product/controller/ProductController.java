@@ -5,6 +5,7 @@ import com.akul.microservices.product.service.ProductService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -31,7 +32,15 @@ public class ProductController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "12") int size
     ) {
-        return productService.getPublicProducts(PageRequest.of(page, size));
+        Sort sort = Sort.by(
+                Sort.Order.asc("sku"),
+                Sort.Order.asc("name"),
+                Sort.Order.asc("price"),
+                Sort.Order.asc("createdAt")
+        );
+
+        return productService.getPublicProducts(
+                PageRequest.of(page, size, sort));
     }
 
     @GetMapping("/{sku}")

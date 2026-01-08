@@ -96,7 +96,7 @@ public class ProductService {
         log.info("Deleted products: {}", skus);
     }
 
-    //========Public=======
+
     public Page<ProductResponse> getPublicProducts(Pageable pageable) {
         return productRepository
                 .findAllByEnabledTrue(pageable)
