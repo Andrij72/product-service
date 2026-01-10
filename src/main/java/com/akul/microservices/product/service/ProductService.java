@@ -93,8 +93,7 @@ public class ProductService {
             return;
         }
         productRepository.deleteAll(products);
-        log.info("Deleted products: {}", skus);
-    }
+        log.info("Deleted products: {}", skus);   }
 
 
     public Page<ProductResponse> getPublicProducts(Pageable pageable) {
@@ -109,5 +108,11 @@ public class ProductService {
                         () -> new ProductNotFoundException(sku));
 
         return ProductResponse.from(product);
+    }
+
+    public AdminProductResponse getAdminProduct(String sku) {
+        Product product = productRepository.findBySku(sku).orElseThrow(
+                () -> new ProductNotFoundException(sku));
+        return AdminProductResponse.from(product);
     }
 }

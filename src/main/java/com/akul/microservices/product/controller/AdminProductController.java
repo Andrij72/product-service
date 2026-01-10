@@ -53,6 +53,11 @@ public class AdminProductController {
         return productService.getAdminProducts(pageable);
     }
 
+    @GetMapping("/{sku}")
+    private AdminProductResponse getProductBySku(@PathVariable  String sku) {
+        return productService.getAdminProduct(sku);
+    }
+
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public AdminProductResponse createProduct(

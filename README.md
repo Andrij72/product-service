@@ -1,27 +1,36 @@
 # Product Service
 
+![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3-brightgreen) ![Java](https://img.shields.io/badge/Java-21-blue) ![MongoDB](https://img.shields.io/badge/MongoDB-7.0.5-success) ![Docker](https://img.shields.io/badge/Docker-ready-lightgrey)
+
 **Product Service** is a microservice responsible for managing products in the **MicroServiceGrid** ecosystem.  
-It is built with **Spring Boot** and stores data in **MongoDB**.
+Built with **Spring Boot 3** and **MongoDB**, it provides public and admin endpoints with pagination, sorting, and batch operations.
 
 ---
 
 ## 🚀 Features
-* Public endpoints to view products
-* Admin endpoints to create, update, delete, enable/disable products
-* Batch operations: create multiple products, delete multiple products
-* Fetch all products or a specific product by SKU
+
+- Public API to fetch products (enabled only)
+- Admin API to create, update, delete, enable/disable products
+- Batch operations for create/delete
+- Pagination and sorting support
+- Soft delete via enable/disable
 
 ---
 
 ## 🛠️ Tech Stack
+
 - **Java 21**
 - **Spring Boot 3**
 - **Spring Data MongoDB**
 - **Lombok**
-- **Maven/Gradle** (depending on your build tool)
-- **Docker** (for containerization)
+- **Maven/Gradle**
+- **Docker** for containerization
 
 ---
+
+## 📂 Project Structure
+
+
 
 ## 📂 Project Structure
     PRODUCT-SERVICE/
@@ -78,6 +87,10 @@ It helps track inventory, sales, and product details easily.
 |--------|----------------------------|-----------------------------------|
 | GET    | `/api/v1/products/{sku}`   | Get product by SKU                |
 | GET    | `/api/v1/products`         | Get paginated list of products    |
+
+Pagination: ?page=0&size=12
+Sorting: fixed by sku, name, price, createdAt ascending
+
 ### =====Admin API=====
 | Method   | Endpoint                  | Description                       |
 |----------|---------------------------|-----------------------------------|
@@ -88,12 +101,10 @@ It helps track inventory, sales, and product details easily.
 | PATCH    | `/api/v1/admin/products/{sku}/enable`  | Enable previously disabled product|
 | DELETE   | `/api/v1/admin/products/batch`| Delete products by list of SKUs (hard delete)|
 
-##### Notes
+##### Notes:
 
 * ***Public API*** returns only enabled products.
-* 
-* ***Admin API*** allows full product lifecycle management.
-* 
+* ***Admin API*** allows full product lifecycle management.* 
 * Batch delete expects a JSON array of SKUs:
 ```json
 ["SKU123", "SKU456", "SKU789"]
@@ -115,18 +126,11 @@ Microservices product-service.postman_collection.json
 ---
 ## 🛠️ Development Workflow
 
-CI/CD via GitHub Actions:
-
-develop branch → builds dev-latest Docker image
-
-main branch → builds latest Docker image
-
-Tags (e.g., v0.0.1) → build release image
-
-Tests run via Maven/Gradle; optionally connect to MongoDB via ENV variable for integration tests
-
-Docker images use SHA tags for reproducibility
-
+* CI/CD via GitHub Actions
+* develop → builds dev-latest Docker image
+* main → builds latest Docker image
+* Tests via Maven/Gradle; optional MongoDB ENV
+* Docker images use SHA tags
 ----
 
 ## 🧪 Integration Tests
@@ -146,6 +150,6 @@ Database is cleaned before each test run, and a dedicated MongoDB container star
 
 ---
 👨‍💻 Author
-Andrij72 — demo project exploring microservice architecture with Spring Boot and MongoDB.
-
+Andrij Kulynych — demo project exploring microservice architecture with Spring Boot and MongoDB.  
+📅 Version: 2.0
 ---
