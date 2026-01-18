@@ -1,26 +1,36 @@
 # Product Service
 
+![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3-brightgreen) ![Java](https://img.shields.io/badge/Java-21-blue) ![MongoDB](https://img.shields.io/badge/MongoDB-7.0.5-success) ![Docker](https://img.shields.io/badge/Docker-ready-lightgrey)
+
 **Product Service** is a microservice responsible for managing products in the **MicroServiceGrid** ecosystem.  
-It is built with **Spring Boot** and stores data in **MongoDB**.
+Built with **Spring Boot 3** and **MongoDB**, it provides public and admin endpoints with pagination, sorting, and batch operations.
 
 ---
 
 ## 🚀 Features
-- Create new products
-- Update and delete existing products
-- Fetch all products or a specific product by ID
+
+- Public API to fetch products (enabled only)
+- Admin API to create, update, delete, enable/disable products
+- Batch operations for create/delete
+- Pagination and sorting support
+- Soft delete via enable/disable
 
 ---
 
 ## 🛠️ Tech Stack
+
 - **Java 21**
 - **Spring Boot 3**
 - **Spring Data MongoDB**
 - **Lombok**
-- **Maven/Gradle** (depending on your build tool)
-- **Docker** (for containerization)
+- **Maven/Gradle**
+- **Docker** for containerization
 
 ---
+
+## 📂 Project Structure
+
+
 
 ## 📂 Project Structure
     PRODUCT-SERVICE/
@@ -31,7 +41,7 @@ It is built with **Spring Boot** and stores data in **MongoDB**.
     ├── src/
     │   ├── main/
     │   │   ├── java/com/akul/microservices/product
-    │   │   │   ├── controller   # REST controllers
+    │   │   │   ├── controller   # REST controllers (Public + Admin)
     │   │   │   ├── dto          # Data Transfer Objects
     │   │   │   ├── exception    # custom exceptions
     │   │   │   ├── model        # entities/models
@@ -69,30 +79,58 @@ or
 ```
 ---
 ## 📌 REST API Endpoints
+Here is used SKU (Stock Keeping Unit) – a unique identifier for each product.
+It helps track inventory, sales, and product details easily.
 
-| Method | Endpoint                  | Description                     |
-| ------ | ------------------------- | ------------------------------- |
-| POST   | `/api/v1/products`        | Create a new product            |
-| POST   | `/api/v1/products/batch`  | Create multiple products in batch |
-| GET    | `/api/v1/products`        | Get all products                |
-| GET    | `/api/v1/products/search` | Search product by name          |
-| DELETE | `/api/v1/products/{id}`   | Delete a product                |
+### =====Public API=====
+| Method | Endpoint                   | Description                       |
+|--------|----------------------------|-----------------------------------|
+| GET    | `/api/v1/products/{sku}`   | Get product by SKU                |
+| GET    | `/api/v1/products`         | Get paginated list of products    |
+
+Pagination: ?page=0&size=12
+Sorting: fixed by sku, name, price, createdAt ascending
+
+### =====Admin API=====
+| Method   | Endpoint                  | Description                       |
+|----------|---------------------------|-----------------------------------|
+| POST     | `/api/v1/admin/products`  | Create a new product              |
+| POST     | `/api/v1/admin/products/batch`| Create multiple products in batch |
+| PUT      | `/api/v1/admin/products/{sku}`  | Update product by sku             |
+| PATCH    | `/api/v1/admin/products/{sku}/disable` | disable product (soft delete)     |
+| PATCH    | `/api/v1/admin/products/{sku}/enable`  | Enable previously disabled product|
+| DELETE   | `/api/v1/admin/products/batch`| Delete products by list of SKUs (hard delete)|
+
+##### Notes:
+
+* ***Public API*** returns only enabled products.
+* ***Admin API*** allows full product lifecycle management.* 
+* Batch delete expects a JSON array of SKUs:
+```json
+["SKU123", "SKU456", "SKU789"]
+```
+----------
+### 📬 Postman Collection
+
+To simplify API testing and avoid duplicating request examples in the documentation,
+a ready-to-use Postman collection is provided with the project.
+
+📁 Location in repository
+
+The collection file is available in the root of the project:
+
+```bash
+Microservices product-service.postman_collection.json
+```
 
 ---
 ## 🛠️ Development Workflow
 
-CI/CD via GitHub Actions:
-
-develop branch → builds dev-latest Docker image
-
-main branch → builds latest Docker image
-
-Tags (e.g., v0.0.1) → build release image
-
-Tests run via Maven/Gradle; optionally connect to MongoDB via ENV variable for integration tests
-
-Docker images use SHA tags for reproducibility
-
+* CI/CD via GitHub Actions
+* develop → builds dev-latest Docker image
+* main → builds latest Docker image
+* Tests via Maven/Gradle; optional MongoDB ENV
+* Docker images use SHA tags
 ----
 
 ## 🧪 Integration Tests
@@ -106,12 +144,12 @@ They cover:
 
 - ✅ Retrieving all products
 
-- ✅ Searching products by name
+- ✅ Searching products by sku
 
 Database is cleaned before each test run, and a dedicated MongoDB container starts automatically.
 
 ---
 👨‍💻 Author
-Andrij72 — demo project exploring microservice architecture with Spring Boot and MongoDB.
-
+Andrij Kulynych — demo project exploring microservice architecture with Spring Boot and MongoDB.  
+📅 Version: 2.0
 ---

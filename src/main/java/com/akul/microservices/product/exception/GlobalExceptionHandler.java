@@ -42,4 +42,16 @@ public class GlobalExceptionHandler {
         errorResponse.put("message", ex.getMessage());
         return errorResponse;
     }
+
+    @ExceptionHandler(ProductAlreadyExistsException.class)
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public Map<String, Object> handleProductAlreadyExists(
+            ProductAlreadyExistsException ex) {
+        Map<String, Object> errorResponse = new HashMap<>();
+        errorResponse.put("timestamp", LocalDateTime.now());
+        errorResponse.put("status", 409);
+        errorResponse.put("error", "Conflict");
+        errorResponse.put("message", ex.getMessage());
+        return errorResponse;
+    }
 }

@@ -1,5 +1,9 @@
 package com.akul.microservices.product.dto;
 
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
+
 import java.math.BigDecimal;
 
 /**
@@ -9,8 +13,16 @@ import java.math.BigDecimal;
  * @version 1.0
  * @since 8/19/2025
  */
-public record ProductRequest(String id,
-                             String name,
-                             String description,
-                             BigDecimal price) {
+public record ProductRequest(
+        @NotBlank(message = "SKU must not be blank")
+        String sku,
+
+        @NotBlank(message = "Name must not be blank")
+        String name,
+
+        String description,
+
+        @NotNull(message = "Price must not be null")
+        @Positive(message = "Price must be positive")
+        BigDecimal price) {
 }
