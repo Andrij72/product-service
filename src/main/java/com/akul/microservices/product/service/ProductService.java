@@ -1,6 +1,8 @@
 package com.akul.microservices.product.service;
 
+import com.akul.microservices.product.client.FileServiceRestClient;
 import com.akul.microservices.product.dto.AdminProductResponse;
+import com.akul.microservices.product.dto.FileDto;
 import com.akul.microservices.product.dto.ProductRequest;
 import com.akul.microservices.product.dto.ProductResponse;
 import com.akul.microservices.product.dto.ProductUpdateRequest;
@@ -8,10 +10,12 @@ import com.akul.microservices.product.exception.ProductAlreadyExistsException;
 import com.akul.microservices.product.exception.ProductNotFoundException;
 import com.akul.microservices.product.model.Product;
 import com.akul.microservices.product.repository.ProductRepository;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -24,42 +28,97 @@ import java.util.List;
  */
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class ProductService {
     private final ProductRepository productRepository;
-
-    public ProductService(ProductRepository productRepository) {
-        this.productRepository = productRepository;
-    }
-
+    private final FileServiceRestClient fileServiceRestClient;
 
     public AdminProductResponse createAdminProduct(ProductRequest request) {
+        return createAdminProduct(request, null);
+    }
+
+    public AdminProductResponse createAdminProduct(
+            ProductRequest request, MultipartFile file) {
         if (productRepository.existsBySku(request.sku())) {
             throw new ProductAlreadyExistsException(request.sku());
         }
 
-        Product product = Product.builder().sku(request.sku())
-                .name(request.name()).description(request.description())
-                .price(request.price()).enabled(true).build();
+        Product product = Product.builder()
+                .sku(request.sku())
+                .name(request.name())
+                .description(request.description())
+                .price(request.price())
+                .enabled(true)
+                .build();
+
+        if (file != null && !file.isEmpty()) {
+            FileDto dto = fileServiceRestClient.uploadProductImage(
+                    product.getSku(), file);
+            product.setImageObjectName(dto.objectName());
+
+            Product saved = productRepository.save(product);
+            return AdminProductResponse.from(saved,
+                    dto.presignedUrl());
+        }
 
         Product saved = productRepository.save(product);
-        log.info("Admin created product {}", saved.getSku());
-
-        return AdminProductResponse.from(saved);
+        return AdminProductResponse.from(saved, null);
     }
 
+
     public AdminProductResponse updateAdminProduct(
-            String sku, ProductUpdateRequest request) {
-        Product product = productRepository.findBySku(sku).orElseThrow(
-                () -> new ProductNotFoundException(sku));
+            String sku,
+            ProductUpdateRequest request,
+            MultipartFile file
+    ) {
+        Product product = productRepository.findBySku(sku)
+                .orElseThrow(() -> new ProductNotFoundException(sku));
 
         product.setName(request.name());
         product.setDescription(request.description());
         product.setPrice(request.price());
 
-        Product saved = productRepository.save(product);
-        log.info("Admin updated product {}", sku);
+        if (file != null && !file.isEmpty()) {
+            FileDto dto = fileServiceRestClient.uploadProductImage(sku, file);
+            product.setImageObjectName(dto.objectName());
 
-        return AdminProductResponse.from(saved);
+            Product saved = productRepository.save(product);
+            return AdminProductResponse.from(saved, dto.presignedUrl());
+        }
+
+        Product saved = productRepository.save(product);
+
+        String previewUrl = saved.getImageObjectName() != null
+                ? fileServiceRestClient.getPreviewUrl(
+                        saved.getImageObjectName())
+                : null;
+
+        return AdminProductResponse.from(saved, previewUrl);
+    }
+
+    /**
+     * Update only the image of an existing product.
+     *
+     * @param sku  the SKU of the product
+     * @param file the new image file
+     * @return AdminProductResponse with updated image info
+     */
+    public AdminProductResponse updateProductImage(String sku,
+                                                   MultipartFile file) {
+        if (file == null || file.isEmpty()) {
+            throw new IllegalArgumentException(
+                    "Image file must not be empty");
+        }
+
+        Product product = productRepository.findBySku(sku)
+                .orElseThrow(() -> new ProductNotFoundException(sku));
+
+        FileDto dto = fileServiceRestClient.uploadProductImage(sku, file);
+
+        product.setImageObjectName(dto.objectName());
+        Product saved = productRepository.save(product);
+
+        return AdminProductResponse.from(saved, dto.presignedUrl());
     }
 
     public void disableProduct(String sku) {
@@ -84,7 +143,14 @@ public class ProductService {
 
     public Page<AdminProductResponse> getAdminProducts(Pageable pageable) {
         return productRepository.findAll(pageable)
-                .map(AdminProductResponse::from);
+                .map(product -> {
+                    String previewUrl = null;
+                    if (product.getImageObjectName() != null) {
+                        previewUrl = fileServiceRestClient.getPreviewUrl(
+                                product.getImageObjectName());
+                    }
+                    return AdminProductResponse.from(product, previewUrl);
+                });
     }
 
     public void deleteProducts(List<String> skus) {
@@ -93,26 +159,43 @@ public class ProductService {
             return;
         }
         productRepository.deleteAll(products);
-        log.info("Deleted products: {}", skus);   }
+        log.info("Deleted products: {}", skus);
+    }
 
 
     public Page<ProductResponse> getPublicProducts(Pageable pageable) {
         return productRepository
                 .findAllByEnabledTrue(pageable)
-                .map(ProductResponse::from);
+                .map(product -> {
+                    String imageUrl = fileServiceRestClient.getPreviewUrl(
+                            product.getImageObjectName()
+                    );
+                    return ProductResponse.from(product, imageUrl);
+                });
     }
 
     public ProductResponse getPublicProductBySku(String sku) {
         Product product = productRepository.findBySku(sku)
-                .filter(Product::isEnabled).orElseThrow(
-                        () -> new ProductNotFoundException(sku));
+                .filter(Product::isEnabled)
+                .orElseThrow(() -> new ProductNotFoundException(sku));
 
-        return ProductResponse.from(product);
+        String imageUrl = fileServiceRestClient.getPreviewUrl(
+                product.getImageObjectName()
+        );
+
+        return ProductResponse.from(product, imageUrl);
     }
 
     public AdminProductResponse getAdminProduct(String sku) {
-        Product product = productRepository.findBySku(sku).orElseThrow(
-                () -> new ProductNotFoundException(sku));
-        return AdminProductResponse.from(product);
+        Product product = productRepository.findBySku(sku)
+                .orElseThrow(() -> new ProductNotFoundException(sku));
+
+        String previewUrl = null;
+        if (product.getImageObjectName() != null) {
+            previewUrl = fileServiceRestClient.getPreviewUrl(
+                    product.getImageObjectName());
+        }
+
+        return AdminProductResponse.from(product, previewUrl);
     }
 }

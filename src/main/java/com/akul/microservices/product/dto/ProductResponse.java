@@ -14,14 +14,17 @@ import java.math.BigDecimal;
 public record ProductResponse(String sku,
                               String name,
                               String description,
-                              BigDecimal price) {
+                              BigDecimal price,
+                              String imageUrl
+) {
 
-    public static ProductResponse from(Product product) {
+    public static ProductResponse from(Product product, String imageUrl) {
         return new ProductResponse(
                 product.getSku(),
                 product.getName(),
                 product.getDescription(),
-                product.getPrice()
+                product.getPrice(),
+                imageUrl
         );
     }
 }

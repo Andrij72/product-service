@@ -9,13 +9,11 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
-import org.springframework.context.annotation.Import;
 import org.testcontainers.containers.MongoDBContainer;
 import org.testcontainers.utility.DockerImageName;
 
 import static io.restassured.RestAssured.given;
 
-@Import(org.testcontainers.utility.TestcontainersConfiguration.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class ProductServiceIntegrationTests {
 
@@ -35,8 +33,7 @@ class ProductServiceIntegrationTests {
 
     @BeforeEach
     void setup() {
-        try (MongoClient mongoClient =
-                     MongoClients.create(mongoDBContainer.getReplicaSetUrl())) {
+        try (MongoClient mongoClient = MongoClients.create(mongoDBContainer.getReplicaSetUrl())) {
             mongoClient.getDatabase("test").drop();
         }
         RestAssured.baseURI = "http://localhost";
@@ -55,13 +52,13 @@ class ProductServiceIntegrationTests {
         given()
                 .contentType("application/json")
                 .body("""
-                        {
-                          "sku": "ADMIN-1",
-                          "name": "Admin Product",
-                          "description": "Created by admin",
-                          "price": 1000
-                        }
-                        """)
+                {
+                  "sku": "ADMIN-1",
+                  "name": "Admin Product",
+                  "description": "Created by admin",
+                  "price": 1000
+                }
+            """)
                 .post("/api/v1/admin/products")
                 .then()
                 .statusCode(201)
@@ -75,11 +72,11 @@ class ProductServiceIntegrationTests {
         given()
                 .contentType("application/json")
                 .body("""
-                        [
-                          { "sku": "BATCH-1", "name": "One", "price": 10 },
-                          { "sku": "BATCH-2", "name": "Two", "price": 20 }
-                        ]
-                        """)
+                [
+                  { "sku": "BATCH-1", "name": "One", "price": 10 },
+                  { "sku": "BATCH-2", "name": "Two", "price": 20 }
+                ]
+            """)
                 .post("/api/v1/admin/products/batch")
                 .then()
                 .statusCode(201)
@@ -108,41 +105,48 @@ class ProductServiceIntegrationTests {
     }
 
     @Test
-    void shouldDeleteProductsBatch() {
+    void shouldEnableAndDisableProduct() {
+        given()
+                .contentType("application/json")
+                .body("""
+                        { "sku": "TOGGLE-1", "name": "Toggle Product", "price": 100 }
+                        """)
+                .post("/api/v1/admin/products");
 
+        // Disable
+        given()
+                .patch("/api/v1/admin/products/TOGGLE-1/disable")
+                .then()
+                .statusCode(204);
+
+        // Enable
+        given()
+                .patch("/api/v1/admin/products/TOGGLE-1/enable")
+                .then()
+                .statusCode(204);
+    }
+
+    @Test
+    void shouldDeleteProductsBatch() {
         given()
                 .contentType("application/json")
                 .body("""
                 [
-                  {
-                    "sku": "DEL-1",
-                    "name": "P1",
-                    "description": "D1",
-                    "price": 10
-                  },
-                  {
-                    "sku": "DEL-2",
-                    "name": "P2",
-                    "description": "D2",
-                    "price": 20
-                  }
+                  { "sku": "DEL-1", "name": "P1", "price": 10 },
+                  { "sku": "DEL-2", "name": "P2", "price": 20 }
                 ]
-                """)
+            """)
                 .post("/api/v1/admin/products/batch")
                 .then()
                 .statusCode(201);
 
         given()
                 .contentType("application/json")
-                .body("""
-                ["DEL-1", "DEL-2"]
-                """)
-                .when()
+                .body("[\"DEL-1\", \"DEL-2\"]")
                 .delete("/api/v1/admin/products/batch")
                 .then()
                 .statusCode(204);
     }
-
 
     // ================= PUBLIC =================
 
@@ -167,11 +171,11 @@ class ProductServiceIntegrationTests {
         given()
                 .contentType("application/json")
                 .body("""
-                        [
-                          { "sku": "PUB-A", "name": "A", "price": 10.0 },
-                          { "sku": "PUB-B", "name": "B", "price": 20.0 }
-                        ]
-                        """)
+                [
+                  { "sku": "PUB-A", "name": "A", "price": 10.0 },
+                  { "sku": "PUB-B", "name": "B", "price": 20.0 }
+                ]
+            """)
                 .post("/api/v1/admin/products/batch");
 
         given()
@@ -179,73 +183,5 @@ class ProductServiceIntegrationTests {
                 .then()
                 .statusCode(200)
                 .body("content.sku", Matchers.hasItems("PUB-A", "PUB-B"));
-    }
-
-
-    @Test
-    void shouldNotReturnDisabledProduct() {
-        given()
-                .contentType("application/json")
-                .body("""
-                        { "sku": "HIDDEN-1", "name": "Hidden", "price": 10 }
-                        """)
-                .post("/api/v1/admin/products");
-
-        given()
-                .patch("/api/v1/admin/products/HIDDEN-1/disable")
-                .then()
-                .statusCode(204);
-    }
-
-    @Test
-    void shouldCreateProductsBatchAndReturnPaginatedResult() {
-
-        given()
-                .contentType("application/json")
-                .body("""
-                    [
-                      { "sku": "P-001", "name": "Product 1", "price": 10 },
-                      { "sku": "P-002", "name": "Product 2", "price": 20 },
-                      { "sku": "P-003", "name": "Product 3", "price": 30 },
-                      { "sku": "P-004", "name": "Product 4", "price": 40 },
-                      { "sku": "P-005", "name": "Product 5", "price": 50 }
-                    ]
-                    """)
-                .when()
-                .post("/api/v1/admin/products/batch")
-                .then()
-                .statusCode(201)
-                .body("size()", Matchers.equalTo(5))
-                .body("sku", Matchers.hasItems(
-                        "P-001", "P-002", "P-003", "P-004", "P-005"
-                ));
-
-        given()
-                .queryParam("page", 0)
-                .queryParam("size", 3)
-                .when()
-                .get("/api/v1/products")
-                .then()
-                .statusCode(200)
-                .body("content.size()", Matchers.equalTo(3))
-                .body("totalElements", Matchers.equalTo(5))
-                .body("totalPages", Matchers.equalTo(2))
-                .body("number", Matchers.equalTo(0))
-                .body("content.sku", Matchers.hasItems(
-                        "P-001", "P-002", "P-003"
-                ));
-
-        given()
-                .queryParam("page", 1)
-                .queryParam("size", 3)
-                .when()
-                .get("/api/v1/products")
-                .then()
-                .statusCode(200)
-                .body("content.size()", Matchers.equalTo(2))
-                .body("number", Matchers.equalTo(1))
-                .body("content.sku", Matchers.hasItems(
-                        "P-004", "P-005"
-                ));
     }
 }

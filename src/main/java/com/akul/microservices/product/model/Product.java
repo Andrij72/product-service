@@ -32,6 +32,8 @@ public class Product {
 
     private BigDecimal price;
 
+    private String imageObjectName;
+
     @CreatedDate
     private Instant createdAt;
 
