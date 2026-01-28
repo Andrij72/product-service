@@ -12,23 +12,26 @@ import java.time.Instant;
  * @since 12/31/2025
  */
 public record AdminProductResponse(
-        String id,
         String sku,
         String name,
         String description,
         BigDecimal price,
         boolean enabled,
-        Instant createdAt
+        Instant createdAt,
+        String imageObjectName,
+        String previewUrl
 ) {
-    public static AdminProductResponse from(Product product) {
+    public static AdminProductResponse from(
+            Product product, String previewUrl) {
         return new AdminProductResponse(
-                product.getId(),
                 product.getSku(),
                 product.getName(),
                 product.getDescription(),
                 product.getPrice(),
                 product.isEnabled(),
-                product.getCreatedAt()
+                product.getCreatedAt(),
+                product.getImageObjectName(),
+                previewUrl
         );
     }
 }
