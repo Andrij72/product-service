@@ -9,11 +9,12 @@ Built with **Spring Boot 3** and **MongoDB**, it provides public and admin endpo
 
 ## 🚀 Features
 
-- Public API to fetch products (enabled only)
-- Admin API to create, update, delete, enable/disable products
-- Batch operations for create/delete
+- Public API to fetch **enabled products only**
+- Admin API to **create, update, delete, enable/disable products**
+- Batch operations for **create/delete**
 - Pagination and sorting support
-- Soft delete via enable/disable
+- Soft delete via **enable/disable**
+- Separate endpoint for **product image upload**
 
 ---
 
@@ -27,10 +28,6 @@ Built with **Spring Boot 3** and **MongoDB**, it provides public and admin endpo
 - **Docker** for containerization
 
 ---
-
-## 📂 Project Structure
-
-
 
 ## 📂 Project Structure
     PRODUCT-SERVICE/
@@ -79,50 +76,68 @@ or
 ```
 ---
 ## 📌 REST API Endpoints
-Here is used SKU (Stock Keeping Unit) – a unique identifier for each product.
-It helps track inventory, sales, and product details easily.
 
-### =====Public API=====
-| Method | Endpoint                   | Description                       |
-|--------|----------------------------|-----------------------------------|
-| GET    | `/api/v1/products/{sku}`   | Get product by SKU                |
-| GET    | `/api/v1/products`         | Get paginated list of products    |
+**SKU (Stock Keeping Unit)** – unique identifier for each product.  
+Used to track inventory, sales, and product details.
 
-Pagination: ?page=0&size=12
-Sorting: fixed by sku, name, price, createdAt ascending
+---
 
-### =====Admin API=====
-| Method   | Endpoint                  | Description                       |
-|----------|---------------------------|-----------------------------------|
-| POST     | `/api/v1/admin/products`  | Create a new product              |
-| POST     | `/api/v1/admin/products/batch`| Create multiple products in batch |
-| PUT      | `/api/v1/admin/products/{sku}`  | Update product by sku             |
-| PATCH    | `/api/v1/admin/products/{sku}/disable` | disable product (soft delete)     |
-| PATCH    | `/api/v1/admin/products/{sku}/enable`  | Enable previously disabled product|
-| DELETE   | `/api/v1/admin/products/batch`| Delete products by list of SKUs (hard delete)|
+### ===== Public API =====
 
-##### Notes:
+| Method | Endpoint                 | Description                        |
+|--------|--------------------------|------------------------------------|
+| GET    | `/api/v1/products/{sku}` | Get product by SKU                 |
+| GET    | `/api/v1/products`       | Get paginated list of enabled products |
 
-* ***Public API*** returns only enabled products.
-* ***Admin API*** allows full product lifecycle management.* 
-* Batch delete expects a JSON array of SKUs:
+**Query Parameters for GET `/api/v1/products`:**
+
+- `page` – page number (optional, default = 0)
+- `size` – page size (optional, default = 12)
+
+**Sorting:** fixed by `sku`, `name`, `price`, `createdAt` ascending
+
+---
+
+### ===== Admin API =====
+
+| Method  | Endpoint                                     | Description                                         |
+|---------|----------------------------------------------|-----------------------------------------------------|
+| POST    | `/api/v1/admin/products`                     | Create a new product (JSON, no file)               |
+| POST    | `/api/v1/admin/products/batch`               | Create multiple products in batch (JSON array, **no file upload**) |
+| PUT     | `/api/v1/admin/products/{sku}`               | Update product by SKU (JSON, no file)             |
+| PUT     | `/api/v1/admin/products/{sku}/image`         | Add/Update product image (multipart/form-data)    |
+| PATCH   | `/api/v1/admin/products/{sku}/disable`       | Disable product (soft delete)                     |
+| PATCH   | `/api/v1/admin/products/{sku}/enable`        | Enable previously disabled product                |
+| DELETE  | `/api/v1/admin/products/batch`               | Delete products by list of SKUs (hard delete)     |
+
+---
+
+### 🔹 Notes
+
+- **Public API** returns only enabled products
+- **Admin API** allows full product lifecycle management
+- **Batch delete** expects a JSON array of SKUs:
+
 ```json
 ["SKU123", "SKU456", "SKU789"]
 ```
-----------
-### 📬 Postman Collection
+Batch create expects a JSON array of ProductRequest objects (no file upload allowed)
 
-To simplify API testing and avoid duplicating request examples in the documentation,
-a ready-to-use Postman collection is provided with the project.
+Image upload uses a dedicated endpoint:
 
-📁 Location in repository
+```
+PUT /api/v1/admin/products/{sku}/image
 
-The collection file is available in the root of the project:
+PATCH /enable and /disable implement soft delete/restore
+```
+📬 Postman Collection
 
-```bash
+Ready-to-use Postman collection to simplify API testing:
+
+**Location in repository:** root folder
+```
 Microservices product-service.postman_collection.json
 ```
-
 ---
 ## 🛠️ Development Workflow
 
@@ -149,7 +164,8 @@ They cover:
 Database is cleaned before each test run, and a dedicated MongoDB container starts automatically.
 
 ---
-👨‍💻 Author
-Andrij Kulynych — demo project exploring microservice architecture with Spring Boot and MongoDB.  
-📅 Version: 2.0
----
+## 👨‍💻 Author
+
+*Andrij Kulynych* — demo project exploring microservice architecture with Spring Boot and MongoDB.  
+
+#### 📅  Version: 2.0

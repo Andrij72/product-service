@@ -1,260 +1,178 @@
 {
 	"info": {
-		"_postman_id": "cb26ea06-a478-46c4-af69-f5eb9e2e201f",
-		"name": "Microservices product-service",
-		"description": "Collection for testing Product Service after the upgrade. Includes Public and Admin APIs, pagination, batch create, and enable/disable.",
-		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-		"_exporter_id": "7173855"
+		"_postman_id": "a1b2c3d4-e5f6-7890-1234-56789abcdef0",
+		"name": "Product Service - Full Collection",
+		"description": "Postman collection for testing Product Service REST API on localhost:8080",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"item": [
 		{
-			"name": "Public API - Get All Products",
+			"name": "Public - Get All Products",
 			"request": {
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{base_url}}/api/v1/products?page=0&size=10&sortBy=createdAt&sortDir=desc",
-					"host": [
-						"{{base_url}}"
-					],
-					"path": [
-						"api",
-						"v1",
-						"products"
-					],
+					"raw": "http://localhost:8080/api/v1/products?page=0&size=10",
+					"host": ["http://localhost"],
+					"port": "8080",
+					"path": ["api", "v1", "products"],
 					"query": [
-						{
-							"key": "page",
-							"value": "0"
-						},
-						{
-							"key": "size",
-							"value": "10"
-						},
-						{
-							"key": "sortBy",
-							"value": "createdAt"
-						},
-						{
-							"key": "sortDir",
-							"value": "desc"
-						}
+						{"key": "page", "value": "0"},
+						{"key": "size", "value": "10"}
 					]
 				}
 			},
 			"response": []
 		},
 		{
-			"name": "Public API - Get Product By SKU",
+			"name": "Public - Get Product by SKU",
 			"request": {
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{base_url}}/api/v1/products/{{sku}}",
-					"host": [
-						"{{base_url}}"
-					],
-					"path": [
-						"api",
-						"v1",
-						"products",
-						"{{sku}}"
-					]
+					"raw": "http://localhost:8080/api/v1/products/{{sku}}",
+					"host": ["http://localhost"],
+					"port": "8080",
+					"path": ["api", "v1", "products", "{{sku}}"]
 				}
 			},
 			"response": []
 		},
 		{
-			"name": "Admin API - Create Product",
+			"name": "Admin - Create Single Product",
 			"request": {
 				"method": "POST",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json"
-					}
-				],
+				"header": [{"key": "Content-Type", "value": "application/json"}],
 				"body": {
 					"mode": "raw",
 					"raw": "{\n  \"sku\": \"SKU123\",\n  \"name\": \"Samsung A90\",\n  \"description\": \"Smartphone\",\n  \"price\": 1000\n}"
 				},
 				"url": {
-					"raw": "{{base_url}}/api/v1/admin/products",
-					"host": [
-						"{{base_url}}"
-					],
-					"path": [
-						"api",
-						"v1",
-						"admin",
-						"products"
-					]
+					"raw": "http://localhost:8080/api/v1/admin/products",
+					"host": ["http://localhost"],
+					"port": "8080",
+					"path": ["api", "v1", "admin", "products"]
 				}
 			},
 			"response": []
 		},
 		{
-			"name": "Admin API - Batch Create Products",
+			"name": "Admin - Batch Create Products",
 			"request": {
 				"method": "POST",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json"
-					}
-				],
+				"header": [{"key": "Content-Type", "value": "application/json"}],
 				"body": {
 					"mode": "raw",
 					"raw": "[\n  {\"sku\": \"SKU124\",\"name\": \"iPhone 14 Pro\",\"description\": \"Apple smartphone\",\"price\": 1350},\n  {\"sku\": \"SKU125\",\"name\": \"Xiaomi Redmi Note 12\",\"description\": \"Affordable smartphone\",\"price\": 400}\n]"
 				},
 				"url": {
-					"raw": "{{base_url}}/api/v1/admin/products/batch",
-					"host": [
-						"{{base_url}}"
-					],
-					"path": [
-						"api",
-						"v1",
-						"admin",
-						"products",
-						"batch"
-					]
+					"raw": "http://localhost:8080/api/v1/admin/products/batch",
+					"host": ["http://localhost"],
+					"port": "8080",
+					"path": ["api", "v1", "admin", "products", "batch"]
 				}
 			},
 			"response": []
 		},
 		{
-			"name": "Admin API - Update Product",
+			"name": "Admin - Update Product (JSON)",
 			"request": {
 				"method": "PUT",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json"
-					}
-				],
+				"header": [{"key": "Content-Type", "value": "application/json"}],
 				"body": {
 					"mode": "raw",
 					"raw": "{\n  \"name\": \"Samsung A91\",\n  \"description\": \"Updated Smartphone\",\n  \"price\": 1100\n}"
 				},
 				"url": {
-					"raw": "{{base_url}}/api/v1/admin/products/{{sku}}",
-					"host": [
-						"{{base_url}}"
-					],
-					"path": [
-						"api",
-						"v1",
-						"admin",
-						"products",
-						"{{sku}}"
-					]
+					"raw": "http://localhost:8080/api/v1/admin/products/{{sku}}",
+					"host": ["http://localhost"],
+					"port": "8080",
+					"path": ["api", "v1", "admin", "products", "{{sku}}"]
 				}
 			},
 			"response": []
 		},
 		{
-			"name": "Admin API - Enable/Disable Product",
+			"name": "Admin - Upload Product Image",
 			"request": {
-				"method": "PATCH",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json"
-					}
-				],
+				"method": "PUT",
+				"header": [],
 				"body": {
-					"mode": "raw",
-					"raw": "{ \"enabled\": false }"
+					"mode": "formdata",
+					"formdata": [
+						{"key": "file", "type": "file", "src": "/path/to/image.webp"}
+					]
 				},
 				"url": {
-					"raw": "{{base_url}}/api/v1/admin/products/{{sku}}/enable",
-					"host": [
-						"{{base_url}}"
-					],
-					"path": [
-						"api",
-						"v1",
-						"admin",
-						"products",
-						"{{sku}}",
-						"enable"
-					]
+					"raw": "http://localhost:8080/api/v1/admin/products/{{sku}}/image",
+					"host": ["http://localhost"],
+					"port": "8080",
+					"path": ["api", "v1", "admin", "products", "{{sku}}", "image"]
 				}
 			},
 			"response": []
 		},
 		{
-			"name": "Admin API - Get All Products (Paginated)",
+			"name": "Admin - Enable Product",
+			"request": {
+				"method": "PATCH",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/api/v1/admin/products/{{sku}}/enable",
+					"host": ["http://localhost"],
+					"port": "8080",
+					"path": ["api", "v1", "admin", "products", "{{sku}}", "enable"]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Admin - Disable Product",
+			"request": {
+				"method": "PATCH",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/api/v1/admin/products/{{sku}}/disable",
+					"host": ["http://localhost"],
+					"port": "8080",
+					"path": ["api", "v1", "admin", "products", "{{sku}}", "disable"]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Admin - Delete Products (Batch)",
+			"request": {
+				"method": "DELETE",
+				"header": [{"key": "Content-Type", "value": "application/json"}],
+				"body": {
+					"mode": "raw",
+					"raw": "[\"SKU123\", \"SKU124\"]"
+				},
+				"url": {
+					"raw": "http://localhost:8080/api/v1/admin/products/batch",
+					"host": ["http://localhost"],
+					"port": "8080",
+					"path": ["api", "v1", "admin", "products", "batch"]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Admin - Get All Products (Paginated)",
 			"request": {
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{base_url}}/api/v1/admin/products?page=0&size=10&sortBy=createdAt&sortDir=desc",
-					"host": [
-						"{{base_url}}"
-					],
-					"path": [
-						"api",
-						"v1",
-						"admin",
-						"products"
-					],
+					"raw": "http://localhost:8080/api/v1/admin/products?page=0&size=10&sortBy=createdAt&sortDir=desc",
+					"host": ["http://localhost"],
+					"port": "8080",
+					"path": ["api", "v1", "admin", "products"],
 					"query": [
-						{
-							"key": "page",
-							"value": "0"
-						},
-						{
-							"key": "size",
-							"value": "10"
-						},
-						{
-							"key": "sortBy",
-							"value": "createdAt"
-						},
-						{
-							"key": "sortDir",
-							"value": "desc"
-						}
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "New Request",
-			"request": {
-				"method": "GET",
-				"header": []
-			},
-			"response": []
-		},
-		{
-			"name": "Admin API-Delete hard batch",
-			"request": {
-				"method": "DELETE",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json"
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": "[\r\n  \"SKU123\",\r\n  \"test\"\r\n]"
-				},
-				"url": {
-					"raw": "{{base_url}}/api/v1/admin/products/batch",
-					"host": [
-						"{{base_url}}"
-					],
-					"path": [
-						"api",
-						"v1",
-						"admin",
-						"products",
-						"batch"
+						{"key": "page", "value": "0"},
+						{"key": "size", "value": "10"},
+						{"key": "sortBy", "value": "createdAt"},
+						{"key": "sortDir", "value": "desc"}
 					]
 				}
 			},
@@ -262,13 +180,6 @@
 		}
 	],
 	"variable": [
-		{
-			"key": "base_url",
-			"value": "http://localhost:8080"
-		},
-		{
-			"key": "sku",
-			"value": "SKU123"
-		}
+		{"key": "sku", "value": "SKU123"}
 	]
 }

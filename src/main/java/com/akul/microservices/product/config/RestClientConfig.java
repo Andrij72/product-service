@@ -4,6 +4,7 @@ import com.akul.microservices.product.client.FileServiceClient;
 import io.micrometer.observation.ObservationRegistry;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cloud.client.loadbalancer.LoadBalanced;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
@@ -28,19 +29,16 @@ public class RestClientConfig {
     @Value("${file-service.url}")
     private String fileServiceUrl;
 
-//    @Bean
-//    @LoadBalanced
-//    public RestClient.Builder loadBalancedRestClientBuilder() {
-//        return RestClient.builder();
-//    }
-
     @Bean
-    public RestClient.Builder restClientBuilder() {
+    @LoadBalanced
+    public RestClient.Builder loadBalancedRestClientBuilder() {
         return RestClient.builder();
     }
 
     @Bean
-    public FileServiceClient fileServiceClient(RestClient.Builder builder) {
+    public FileServiceClient fileServiceClient(
+            RestClient.Builder builder) {
+
         RestClient restClient = builder
                 .baseUrl(fileServiceUrl)
                 .observationRegistry(observationRegistry)
